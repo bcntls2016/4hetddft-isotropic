@@ -27,11 +27,11 @@ real    (kind=8) , allocatable  :: ualphas(:,:,:)  ! Piece of field due to the a
 end module alphasterm
 !------------------------------------------------------------------
 module deriva
-integer (kind=4)              :: npd=7             ! Number of points for derivatives
+integer (kind=4)              :: npd=13             ! Number of points for derivatives
 real    (kind=8), allocatable :: dxden(:,:,:)      ! Partial derivative in X for den in Real-space
 real    (kind=8), allocatable :: dyden(:,:,:)      ! Partial derivative in X for den in Real-space
 real    (kind=8), allocatable :: dzden(:,:,:)      ! Partial derivative in X for den in Real-space
-integer (kind=4)              :: icon=8            ! Bounday conditions for derivatives
+integer (kind=4)              :: icon=13            ! Bounday conditions for derivatives
 end module deriva
 !------------------------------------------------------------------
 module energies
@@ -59,7 +59,7 @@ end module field
 !------------------------------------------------------------------
 module fftmodule
 
-character (len=15)            :: fftwplan="FFTW_ESTIMATE"
+character (len=15)            :: fftwplan="FFTW_PATIENT"
 ! real    (kind=8), allocatable :: fin(:,:,:)  ! Work Array for FFT 
 ! complex (kind=8), allocatable :: fout(:,:,:) ! Work Array for FFT 
 ! integer (kind=8)              :: pfftfw      ! Pointer for FFT forward
@@ -244,7 +244,7 @@ real      (kind=8) :: vdt(2)     ! Speeds for imaginary step-time method.
 integer   (kind=4) :: nn(3)      ! Auxiliar array for pderg
 integer   (kind=4) :: mmx(4)     ! Auxiliar array for pderg
 integer   (kind=4) :: iw(11)     ! Auxiliar array for pderg
-integer   (kind=4) :: nsfiles=10 ! Number-of-save-files
+integer   (kind=4) :: nsfiles=1 ! Number-of-save-files
 integer   (kind=4) :: nsfaux=0   ! Actual generation of backup file
 integer   (kind=4) :: nsfaux2=0   ! Actual generation of backup file
 integer   (kind=4) :: irespar=0  ! Does not write partial auxiliar plot files...

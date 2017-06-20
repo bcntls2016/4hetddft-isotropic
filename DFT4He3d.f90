@@ -129,8 +129,8 @@ character  (len=23)  :: curvfile
 character  (len=4)   :: chariter
 
 
-logical              :: lsurf=.true.         ! include TiO2 surface or not
-logical              :: lsurf3D=.true.         ! include TiO2 surface or not
+logical              :: lsurf=.false.         ! include TiO2 surface or not
+logical              :: lsurf3D=.false.         ! include TiO2 surface or not
 
 real       (kind=8)  :: Lambdah=2.d0,txmean=1000.d0,txsurf=2.d0      &
                                     ,tymean=1000.d0,tysurf=2.d0      &
@@ -185,10 +185,6 @@ piq    = pi*pi
 !...............................
 !... Read  master-input file ...
 !...............................
-Lambdah = 0.d0
-tzmean   = 0.d0
-tzsurf   = 1.d0
-
 read(5,nml=input,end=999)
 
 If(selec_gs.Eq.'')selec_gs=selec
