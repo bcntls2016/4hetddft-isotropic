@@ -5,8 +5,8 @@
 
 COMP = ifort
 CFLAGS = -c -O3 -xAVX -align array64byte -qopenmp -parallel -mkl=parallel -unroll0 -module ./modules
-LD_FLAGS = -mkl=parallel
-PROGNAME=scalarimp_absor_new
+LD_FLAGS = -threads -parallel -qopt-matmul -I${MKLROOT}/include/fftw -mkl=parallel
+PROGNAME=4hetddft-isotropic
 
 objs=init_deriv_parallel.o	modules.o	V_impur.o	DFT4He3d.o	derden.o	dimen.o		energy.o\
 		fforma.o	fft.o		initcg.o	morse.o\
