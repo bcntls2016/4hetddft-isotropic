@@ -6,7 +6,7 @@
 COMP = ifort
 CFLAGS = -c -O3 -xAVX -align array64byte -qopenmp\
 		 -parallel -qopt-matmul -unroll0 -module ./modules
-LD_FLAGS = -threads -I${MKLROOT}/include/fftw -mkl=parallel
+LD_FLAGS = -threads -I${MKLROOT}/include/fftw -mkl=parallel -qopt-matmul
 
 # Name of the program
 PROGNAME = 4hetddft-isotropic
