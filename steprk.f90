@@ -3,13 +3,13 @@
 !      Runge-Kutta-Gill method
 !       (Ralston & Wilf Vol I, pag. 117)
 !
-use Para_DerivnD ! (icon,npd,dxden,dyden,dzden,pderx,pdery,pderz,llap,xlap)
+use Para_derivnD
 use deriva ! (icon,npd,dxden,dyden,dzden,pderx,pdery,pderz,llap,xlap)
 use field  ! (pot4,hpsi,uext,limp)
 use grid   ! (nx,ny,nz,nxyz,dxyz)
 use gridk  ! (px,py,pz)
 use he4    ! (h2o2m4)
-! use impur  !
+use impur  !
 use classicimp
 use rho    ! (psi, psiold & hpsiold)
 use util1  ! (vdt,nn,mmx,iw)
@@ -27,7 +27,7 @@ complex (kind=8) :: auxc(6)
 complex (kind=8) :: aux1c,aux2c
 complex (kind=8) :: ci=cmplx(0.0d0,1.0d0)
 
-! include 'interface_derivnD.include'  ! Per fer servir les derivades generiques
+!include 'interface_derivnD.include'  ! Per fer servir les derivades generiques
 
 arun(1)=0.5d0
 arun(2)=1.0d0-1.d0/dsqrt(2.d0)
@@ -49,20 +49,9 @@ brun(4)=2.0d0
 !.. Laplacian of H^{iorder-1}ï¿½Psi (0) ...
 !........................................
 !
-!   icon   =  0 ! Take the derivative.
-!   icon   = 20 ! Take the derivative. Use Wigner-Seitz conditions.
-!   icon   =  8 ! Take the derivative. Use periodic conditions.
-!
 
 do jrun=1,4
 
-!  call pdergc(2,npd,nn,hx,psi,sto1c,3,1,mmx,iw,icon)
-!  call pdergc(2,npd,nn,hy,psi,sto2c,3,2,mmx,iw,icon)
-!  call pdergc(2,npd,nn,hz,psi,sto3c,3,3,mmx,iw,icon)
-
-!  Call deriv3Dc(2,nn,hx,1,psi,sto1c,Icon)
-!  Call deriv3Dc(2,nn,hy,2,psi,sto2c,Icon)
-!  Call deriv3Dc(2,nn,hz,3,psi,sto3c,Icon)
 
   Call derivnD(2,nn,hx,1,psi,sto1c,Icon)
   Call derivnD(2,nn,hy,2,psi,sto2c,Icon)
@@ -71,7 +60,7 @@ do jrun=1,4
 !
 !   We compute H·Psi
 !
-Sto4c = timec*((sto1c+sto2c+sto3c)*h2o2m4 - pot4*psi) - ci*uimp*psi
+Sto4c = timec*((sto1c+sto2c+sto3c)*h2o2m4 - pot4*psi)
 Sto1c = arun(jrun)*(Sto4c - brun(jrun)*q)
 q = q + 3.*Sto1c - crun(jrun)*Sto4c
 if(jrun.eq.1)then
@@ -83,58 +72,44 @@ if(jrun.eq.1)then
 endif
 psi = psi + deltat*Sto1c
 den = Abs(psi)**2
-
-!...............................................................test
-! print*,'inside steprk, jrun=',jrun
- do iz=1,nz ; do iy=1,ny ; do ix=1,nx 
-  if(.not.(den(ix,iy,iz).gt.0))then ; print*,ix,iy,iz,den(ix,iy,iz) 
-  call respar(x,y,z,nx,ny,nz,1,'uimp','den',uimp,den); STOP ; endif
- end do ; enddo ; enddo
-!...............................................................test
-
 !
 ! Impurity evolution if it is necessary
 !
 !.................!
 !... positions ...!
 !.................!
-  aux2r(:) = arun(jrun)*(vimp(:) - brun(jrun)*qr(:))
-     qr(:) = qr(:) + 3.*aux2r(:) - crun(jrun)*vimp(:)
+  stor(:,:) = arun(jrun)*(vimp(:,:) - brun(jrun)*qr(:,:))
+     qr(:,:) = qr(:,:) + 3.*stor(:,:) - crun(jrun)*vimp(:,:)
   if(jrun.eq.1)then
 !    vpold(:,:,2) = vpold(:,:,1) 
 !    vpold(:,:,1) =    vp(:,:)            
-   rimpold(:,3) = rimpold(:,2) 
-   rimpold(:,2) = rimpold(:,1) 
-   rimpold(:,1) = rimp(:) 
+   rimpold(:,:,3) = rimpold(:,:,2)
+   rimpold(:,:,2) = rimpold(:,:,1)
+   rimpold(:,:,1) = rimp(:,:)
   endif
 
-  rimp(:) = rimp(:) + deltat*aux2r(:)
+  rimp(:,:) = rimp(:,:) + deltat*stor(:,:)
 
 !..................!
 !... velocities ...!
 !..................!
-  aux2r(:) = arun(jrun)*(aimp(:) - brun(jrun)*qv(:))
-  qv(:) = qv(:) + 3.*aux2r(:) - crun(jrun)*aimp(:)
+  Stor(:,:) = arun(jrun)*(aimp(:,:) - brun(jrun)*qv(:,:))
+  qv(:,:) = qv(:,:) + 3.*stor(:,:) - crun(jrun)*aimp(:,:)
   if(jrun.eq.1)then
-   aimpold(:,2) = aimpold(:,1) 
-   aimpold(:,1) =    aimp(:)            
-   vimpold(:,3) = vimpold(:,2) 
-   vimpold(:,2) = vimpold(:,1) 
-   vimpold(:,1) =    vimp(:) 
+   aimpold(:,:,2) = aimpold(:,:,1)
+   aimpold(:,:,1) =    aimp(:,:)
+   vimpold(:,:,3) = vimpold(:,:,2)
+   vimpold(:,:,2) = vimpold(:,:,1)
+   vimpold(:,:,1) =    vimp(:,:)
   endif
-  vimp(:) = vimp(:) + deltat*aux2r(:)
+  vimp(:,:) = vimp(:,:) + deltat*stor(:,:)
 
 ! ...........................................................
 
   if(jrun.le.3)then
-! if(newpoten)then
-!     call superpoten(rimp,invar,aimp,Hinvar)
-! else
-    call potenimp(rimp)
+    call potenimp()
     call poten()
-    call forceimp(rimp,aimp)
-    aimp(:) = aimp(:)/mAg_u
-! endif
+    call forceimp()
   endif
 enddo
 
