@@ -1,4 +1,4 @@
-      SUBROUTINE STEPPC(deltat,errHe,errimp,errvimp)
+SUBROUTINE STEPPC(deltat,errHe,errimp,errvimp)
 !
 !      Predictor-Modifier-Corrector method
 !       (Ralston & Wilf Vol I, pag. 99)

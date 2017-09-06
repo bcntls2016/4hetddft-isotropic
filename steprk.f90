@@ -1,4 +1,4 @@
-      SUBROUTINE STEPRK(deltat)
+SUBROUTINE STEPRK(deltat)
 !
 !      Runge-Kutta-Gill method
 !       (Ralston & Wilf Vol I, pag. 117)
