@@ -272,6 +272,8 @@ open(1,file="imp.input")
 read(1,nml=imp)
 close(1)
 
+write(6,nml=imp)
+
 Write(6,'("Used potentials....:")')
 do k=1,N_imp
   pr%selec_gs_k(k)=selec_gs_k(k)
