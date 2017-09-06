@@ -269,7 +269,7 @@ pmaxz = 1.0d0/(2.0d0*hz)      ! Maximum 'frequency' in Z-grid
 
 call dimen()
 open(1,file="imp.input")
-read(1,input)
+read(1,imp)
 close(1)
 
 Write(6,'("Used potentials....:")')
