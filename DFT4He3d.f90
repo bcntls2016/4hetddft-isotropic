@@ -487,7 +487,7 @@ call fforma(core4,b4,eps4,sigma4,h4,nx,ny,nz,pmod,fvlj4)
 
 If(Lsolid)Then
 
-  aux=h4!*1.065d0
+  aux=h4*1.065d0
   write(6,'("    Initialize Coarse-graining kernel, for Solid DF, h_cg=",1p, E15.6)')aux
   call initcg(aux,wcgk)
 
