@@ -2,13 +2,14 @@ Module Impressio
 
 Type, Public  :: info_printout
   Character (len=60) :: namefile
-  Character (Len=80) :: selec_gs
-  Integer   (Kind=4) :: it, it0, nx, ny, nz
-  Real      (Kind=8) :: r2(3), cm(3), ang(3), rimp(3), vimp(3), dtps, Ekin, Elj, Ecor, auxn4
+  Character (Len=80), Allocatable :: selec_gs_k(:), selec_gs_k_k(:,:), drselec_gs_k_k(:,:)
+  Integer   (Kind=4) :: it, it0, nx, ny, nz, N_imp
+  Real      (Kind=8) :: r2(3), cm(3), ang(3), dtps, Ekin, Elj, Ecor, auxn4
   Real      (Kind=8) :: Ealphas, Esolid, Ekinx, EVx, Etot
   Real      (Kind=8) :: Time0, Time, hx, hy, hz, xmax, ymax, zmax
-  Real      (Kind=8) :: r_cutoff_gs
-  Real      (Kind=8) :: umax_gs
+  Real      (Kind=8), Allocatable :: r_cutoff_gs_k(:), r_cutoff_gs_k_k(:,:), drr_cutoff_gs_k_k(:,:)
+  Real      (Kind=8), Allocatable :: umax_gs_k(:),umax_gs_k_k(:,:),drumax_gs_k_k(:,:)
+  Real		(Kind=8), Allocatable :: rimp(:,:), vimp(:,:)
   Complex   (Kind=8), Allocatable :: psi(:,:,:)
 End type info_printout
 
@@ -39,6 +40,7 @@ real    (kind=8)              :: etot             ! Total energy (system)
 real    (kind=8)              :: etot4            ! Total energy (helium)
 real    (kind=8)              :: ekin4            ! Kinetic energy (helium)
 real    (kind=8)              :: ekinx            ! Kinetic energy (impurity)
+real    (kind=8)              :: eimpu_impu       ! Impurity-impurity interaction energy (X-X)
 real    (kind=8)              :: elj4             ! Lennard-Jones energy
 real    (kind=8)              :: ealphas          ! Alpha_s term
 real    (kind=8)              :: ecor4            ! Correlation contribution
@@ -280,11 +282,12 @@ complex (kind=8), allocatable :: pc(:,:,:), pcx(:,:,:)         ! Auxiliar arrays
 end module rkpc
 !------------------------------------------------------------------
 module classicimp
+real    (kind=8), allocatable :: stor(:,:)
 real    (kind=8), allocatable :: rimp(:,:)
 real    (kind=8), allocatable :: vimp(:,:)
 real    (kind=8), allocatable :: aimp(:,:)
 real    (kind=8), allocatable :: F(:,:)
-real    (kind=8), allocatable :: F_ij(:,:)
+real    (kind=8), allocatable :: F_ij(:,:,:)
 real    (kind=8), allocatable :: uimp(:,:,:)  !  Potencial from imp for He
 real    (kind=8), allocatable :: uimp_k(:,:,:,:)  !  Potencial from imp_k for He
 logical                       :: lselection = .true.

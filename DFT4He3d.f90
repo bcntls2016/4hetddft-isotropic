@@ -187,6 +187,15 @@ write(10,nml=input)
 
 
 Allocate(pr%psi(nx,ny,nz))
+Allocate(pr%selec_gs_k(N_imp))
+Allocate(pr%selec_gs_k_k(N_imp,N_imp))
+Allocate(pr%drselec_gs_k_k(N_imp,N_imp))
+Allocate(pr%r_cutoff_gs_k(N_imp))
+Allocate(pr%r_cutoff_gs_k_k(N_imp,N_imp))
+Allocate(pr%drr_cutoff_gs_k_k(N_imp,N_imp))
+Allocate(pr%umax_gs_k(N_imp))
+Allocate(pr%umax_gs_k_k(N_imp,N_imp))
+Allocate(pr%drumax_gs_k_k(N_imp,N_imp))
 
 
 nn(1)  = nx ; nn(2)  = ny ; nn(3)  = nz;                ! Initialize things for PDERG
@@ -244,7 +253,6 @@ hz    = 2.0d0*abs(zmax)/(nz)  ! Step in z-grid
 
 dxyz  = hx*hy*hz              ! Element of volum in real space
 nxyz  = nx*ny*nz              ! Total number of points
-dVomAg = dxyz/mAg_u
 
 hpx   = 1.0d0/(nx*hx)         ! Step in px-grid
 hpy   = 1.0d0/(ny*hy)         ! Step in py-grid
@@ -266,9 +274,15 @@ close(1)
 
 Write(6,'("Used potentials....:")')
 do k=1,N_imp
+  pr%selec_gs_k(k)=selec_gs_k(k)
+  pr%r_cutoff_gs_k(k)=r_cutoff_gs_k(k)
+  pr%umax_gs_k(k)=umax_gs_k(k)
   Write(6,'(A/,"r_cutoff_gs,umax_gs..:"1p,2E15.6)')selec_gs_k(k),r_cutoff_gs_k(k),umax_gs_k(k)
   m_imp(k) = m_imp_u(k)*mp_u
   do m=k+1,N_imp
+    pr%selec_gs_k_k(k,m)=selec_gs_k_k(k,m)
+	pr%r_cutoff_gs_k_k(k,m)=r_cutoff_gs_k_k(k,m)
+	pr%umax_gs_k_k(k,m)=umax_gs_k_k(k,m)
     Write(6,'(A/,"r_cutoff_gs_k_k,umax_gs_k_k..:"1p,2E15.6)')selec_gs_k_k(k,m),r_cutoff_gs_k_k(k,m),umax_gs_k_k(k,m)
   enddo
 enddo
@@ -392,7 +406,7 @@ end select
 
 write(6,6018) nthread,niter
 if(mode.ne.0) then
-  write(6,6020) n4,r_clust
+  write(6,6020) n4
 else
   write(6,6025) n4
 end if
@@ -521,9 +535,9 @@ den=Conjg(psi)*psi
 call potenimp()
 call poten()              ! First Potential  (for Lagrange Equation)
 call forceimp()
-aimp_k(:,1) = aimp_k(:,1)/m_imp(:)
-aimp_k(:,2) = aimp_k(:,2)/m_imp(:)
-aimp_k(:,3) = aimp_k(:,3)/m_imp(:)
+aimp(:,1) = F(:,1)/m_imp(:)
+aimp(:,2) = F(:,2)/m_imp(:)
+aimp(:,3) = F(:,3)/m_imp(:)
 call energy()             ! Calculate energies
 
 
@@ -531,7 +545,7 @@ call energy()             ! Calculate energies
 call respar(x,y,z,nx,ny,nz,1,'uimp','den',uimp,den)
 write(6,'("Number of He4 atoms",1P,E15.6)')auxn4
 write(6,6050) etot4,etot4/n4,ekin4,elj4,ealphas,esolid,ecor4
-  write(6,6060) eimpu,ekinx,eHeX,0.d0,etot
+  write(6,6060) eimpu_impu,eimpu,ekinx,eHeX,0.d0,etot
 eold = etot4
 call flush(6)
 
@@ -607,6 +621,7 @@ pr%hz    = hz
 pr%xmax  = xmax
 pr%ymax  = ymax
 pr%zmax  = zmax
+pr%N_imp = N_imp
 
 !mesure du temps
 ! Temps CPU de calcul initial.
@@ -633,9 +648,9 @@ pr%it = iter
     call potenimp()
     call poten()
     call forceimp()
-	aimp_k(:,1) = aimp_k(:,1)/m_imp(:)
-	aimp_k(:,2) = aimp_k(:,2)/m_imp(:)
-	aimp_k(:,3) = aimp_k(:,3)/m_imp(:)
+    aimp(:,1) = F(:,1)/m_imp(:)
+    aimp(:,2) = F(:,2)/m_imp(:)
+    aimp(:,3) = F(:,3)/m_imp(:)
 
     aux1 = time0 + Iteraux*deltatps
     temps = aux1
@@ -655,8 +670,7 @@ pr%it = iter
       call energy()
 
       write(6,7010) etot4,(etot4-eold),etot4/n4,ekin4,elj4,ealphas,esolid,ecor4
-
-      write(6,7015) eimpu,ekinx,eHeX,0.d0,etot
+      write(6,7015) eimpu_impu,eimpu,ekinx,eHeX,0.d0,etot
 
       eold = etot4
 
@@ -744,6 +758,8 @@ pr%it = iter
         pr%evx     = eimpu
         pr%etot    = etot
         pr%time    = temps
+		pr%rimp(:,:) = rimp(:,:)
+		pr%vimp(:,:) = vimp(:,:)
         write(6,7100) xcm4,ycm4,zcm4
 
    end if
@@ -884,7 +900,8 @@ T6,'Title of the run: ',A)
                T5,'Alpha_s term  energy (He) ....: ',F18.6,' K',/,    &
                T5,'Solid energy (He)  ...........: ',F18.6,' K',/,    &
                T5,'Correlation energy   (He) ....: ',F18.6,' K')
-6060 format(1x,T5,'Impurity energy (X) ..........: ',F18.6,' K',/,    &
+6060 format(1x,T5,'Impurity-impurity energy .....: ',F18.6,' K',/,    &
+			   T5,'Impurity energy (X) ..........: ',F18.6,' K',/,    &
                T5,'Kinetic energy (X) ...........: ',F18.6,' K',/,    &
                T5,'Interaction energy (X-He) ....: ',F18.6,' K',/,    &
                T5,'Spin-Orbit energy (X) ........: ',F18.6,' K',/,    &
@@ -906,7 +923,8 @@ T6,'Title of the run: ',A)
              /,T5,'Alpha_s term  energy (He).. ',0P,F18.6,' K',                  &
              /,T5,'Solid energy (He) ......... ',0P,F18.6,' K',                  &
              /,T5,'Correlation Energy  (He)... ',0P,F18.6,' K')
-7015 format(   T5,'Impurity energy (X->He) ... ',0P,F18.6,' K',/,&
+7015 format(   T5,'Impurity-impurity energy... ',0P,F18.6,' K',/,&
+			   T5,'Impurity energy (X->He) ... ',0P,F18.6,' K',/,&
                T5,'Kinetic energy (X) ........ ',0P,F18.6,' K',/,&
                T5,'Interaction energy (X-He) . ',0P,F18.6,' K',/,    &
                T5,'Spin-Orbit energy (X) ..... ',0P,F18.6,' K',/,    &

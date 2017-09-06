@@ -60,7 +60,7 @@ do jrun=1,4
 !
 !   We compute H·Psi
 !
-Sto4c = timec*((sto1c+sto2c+sto3c)*h2o2m4 - pot4*psi)
+Sto4c = timec*((sto1c+sto2c+sto3c)*h2o2m4 - pot4*psi) - ci*uimp*psi
 Sto1c = arun(jrun)*(Sto4c - brun(jrun)*q)
 q = q + 3.*Sto1c - crun(jrun)*Sto4c
 if(jrun.eq.1)then

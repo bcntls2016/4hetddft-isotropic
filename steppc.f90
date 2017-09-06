@@ -43,7 +43,7 @@ complex (kind=8) :: ci=cmplx(0.0d0,1.0d0)
 !
 !      Predictor:
 !
-Sto4c = timec*((sto1c+sto2c+sto3c)*h2o2m4 - pot4*psi)
+Sto4c = timec*((sto1c+sto2c+sto3c)*h2o2m4 - pot4*psi) - ci*uimp*psi
 Sto1c = psiold(:,:,:,ioldp(3)) + c4o3*deltat*(2.d0*Sto4c-hpsiold(:,:,:,ioldh(1))           &
         + 2.d0*hpsiold(:,:,:,ioldh(2)))
 !
@@ -98,7 +98,7 @@ ioldh(1)=iaux
   Call derivnD(2,nn,hy,2,psi,sto2c,Icon)
   Call derivnD(2,nn,hz,3,psi,sto3c,Icon)
 
-Sto4c = timec*((sto1c+sto2c+sto3c)*h2o2m4  - pot4*psi)
+Sto4c = timec*((sto1c+sto2c+sto3c)*h2o2m4  - pot4*psi) - ci*uimp*psi
 Sto5c = 0.125d0*( 9.d0*psiold(:,:,:,ioldp(3)) - psiold(:,:,:,ioldp(2))   &
       +3.d0*deltat*(Sto4c + 2.d0*hpsiold(:,:,:,ioldh(1)) - hpsiold(:,:,:,ioldh(2))  ))
 pc = pc - Sto5c
@@ -130,7 +130,7 @@ Stor(:,:) = 0.125d0*( 9.d0*rimpold(:,:,ioldr(3)) - rimpold(:,:,ioldr(2))     &
 pcr = pcr -Stor
 ! Valor final:
   rimp = Stor + c9*pcr
-errimp = sum(Abs(c9*pcr))*0.3333333333d0/N_par
+errimp = sum(Abs(c9*pcr))*0.3333333333d0/N_imp
 ! Reubicacion
 iaux=ioldr(3) ; ioldr(3)=ioldr(2) ; ioldr(2)=ioldr(1) ; ioldr(1)=iaux
 
@@ -144,7 +144,7 @@ pcv = pcv -Stor
 vimpold(:,:,ioldv(3)) = vimp(:,:)
 ! Valor final:
   vimp = stor + c9*pcv
- errvimp = sum(Abs(c9*pcv))*0.3333333333d0/N_par
+ errvimp = sum(Abs(c9*pcv))*0.3333333333d0/N_imp
 
 
 ! Reubicacion

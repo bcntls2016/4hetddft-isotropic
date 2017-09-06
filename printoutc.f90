@@ -21,42 +21,28 @@ Use Impressio
 
 implicit none
 
-Type(info_printout) pr
+integer (kind=4) :: k,m,N_imp
 
-!complex   (kind=8), intent(in) :: psi(nx,ny,nz)
-!Integer   (kind=4), intent(in) :: nx,ny,nz
-!real      (kind=8), intent(in) :: rimp(3)
-!real      (kind=8), intent(in) :: vimp(3)
-!character (len=60)             :: namefile
-!---------------------------------------------------------------
-!---------------------------------------------------------------
-!---------------------------------------------------------------
-!real      (kind=8) :: xcm,ycm,zcm,time0,time, hx,hy,hz,xmax,ymax,zmax, deltatps
-!integer   (kind=4) :: ix, iy, iz, iter0i, iter, nx,ny,nz
-!time0    = pr%time0
-!time     = pr%time
-!deltatps = pr%dtps
-!nx       = pr%nx
-!ny       = pr%ny
-!nz       = pr%nz
-!hx       = pr%hx
-!hy       = pr%hy
-!hz       = pr%hz
-!xmax     = pr%xmax
-!ymax     = pr%ymax
-!zmax     = pr%zmax
-!xcm      = pr%cm(1)
-!ycm      = pr%cm(2)
-!zcm      = pr%cm(3)
-!iter     = pr%it
+Type(info_printout) pr
+  N_imp=pr%N_imp
   open(10,file=pr%namefile,form='FORMATTED',BUFFERED='yes')
     write(10,'("#  ")')
     write(10,'("#  Density after ",I15," iterations")') pr%it
     write(10,'("#  Actual deltatps....:",1p,E20.10)') pr%dtps
     Write(10,'("#  Total evolution time(ps)...:",1p,E20.12)')pr%time
-    Write(10,'("#  Impurity potential.........:  ",A)')pr%selec_gs
-    Write(10,'("#  r_cutoff_gs:",1p,E16.8)')pr%r_cutoff_gs
-    Write(10,'("#  umax_gs....:",1p,E16.8)')pr%umax_gs
+	do k=1,N_imp
+      Write(10,'("#  Impurity-helium potential.........:  ",A)')pr%selec_gs_k(k)
+      Write(10,'("#  r_cutoff_gs:",1p,E16.8)')pr%r_cutoff_gs_k(k)
+      Write(10,'("#  umax_gs....:",1p,E16.8)')pr%umax_gs_k(k)
+	  do m=k+1,N_imp
+        Write(10,'("#  Impurity-impurity potential.........:  ",A)')pr%selec_gs_k_k(k,m)
+        Write(10,'("#  r_cutoff_gs:",1p,E16.8)')pr%r_cutoff_gs_k_k(k,m)
+        Write(10,'("#  umax_gs....:",1p,E16.8)')pr%umax_gs_k_k(k,m)
+        Write(10,'("#  Derv. Impurity-impurity potential.........:  ",A)')pr%drselec_gs_k_k(k,m)
+        Write(10,'("#  r_cutoff_gs:",1p,E16.8)')pr%drr_cutoff_gs_k_k(k,m)
+        Write(10,'("#  umax_gs....:",1p,E16.8)')pr%drumax_gs_k_k(k,m)
+	  enddo
+	enddo
     Write(10,'("#  xcm,ycm,zcm:",1p,3E16.8)')pr%cm
     Write(10,'("#  NParticles.:",1p,E16.8)')pr%auxn4
     Write(10,'("#  Ekin.......:",1p,E16.8)')pr%ekin
@@ -71,6 +57,7 @@ Type(info_printout) pr
     Write(10,'("#  <x2,y2,z2>.:",1p,3E16.8)')pr%r2
     write(10,'("#  ")')
     write(10,*) pr%xmax,pr%ymax,pr%zmax,pr%hx,pr%hy,pr%hz,pr%nx,pr%ny,pr%nz
+    write(10,*) pr%N_imp
     write(10,*) pr%rimp
     write(10,*) pr%vimp
     write(10,*) pr%psi

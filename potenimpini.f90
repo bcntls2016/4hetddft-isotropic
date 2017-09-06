@@ -1,9 +1,9 @@
 subroutine potenimpini
 use interpol !, only:DelInter,potpi,potdel,npot,vpi,delta
 use grid
-use classicimp, only: rimp, lselection, N_imp
+use classicimp!, only: rimp, lselection, N_imp
 implicit none
-integer (kind=4) :: i
+integer (kind=4) :: i,k
 real    (kind=8) :: r,rmax
 real    (kind=8) :: r1,r2,Select_pot
 

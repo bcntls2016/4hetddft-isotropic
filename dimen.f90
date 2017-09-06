@@ -78,6 +78,7 @@ allocate ( wcgk(nx/2+1,ny,nz))    ! Array with the kernel of the coarse-graining
    allocate(vimp(N_imp,3))       ! Array test particles
    allocate(aimp(N_imp,3))       ! Array test particles
    allocate(F(N_imp,3))       ! Array test particles
+   allocate(F_ij(N_imp,N_imp,3))       ! Array test particles
    allocate(rimpold(N_imp,3,3))       ! Array test particles
    allocate(vimpold(N_imp,3,3))       ! Array test particles
    allocate(aimpold(N_imp,3,2))       ! Array test particles
@@ -87,8 +88,8 @@ allocate ( wcgk(nx/2+1,ny,nz))    ! Array with the kernel of the coarse-graining
    allocate(m_imp_u(N_imp))
    allocate(m_imp(N_imp))
    allocate(selec_gs_k(N_imp))
-   allocate(selec_gs_k_k(N_imp:N_imp))
-   allocate(drselec_gs_k_k(N_imp:N_imp))
+   allocate(selec_gs_k_k(N_imp,N_imp))
+   allocate(drselec_gs_k_k(N_imp,N_imp))
    allocate(r_cutoff_gs_k(N_imp))
    allocate(r_cutoff_gs_k_k(N_imp,N_imp))
    allocate(drr_cutoff_gs_k_k(N_imp,N_imp))
