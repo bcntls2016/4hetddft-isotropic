@@ -15,17 +15,17 @@ real    (kind=8) :: xx,yy,zz
 real    (kind=8) , intent(in) :: rimp(3)
 real    (kind=8)              :: rmod
 
-call updatepoten(rimp)
+call updatepoten()
 
 end subroutine potenimp
 
 !---------------------------------------------------------------------------!
 
-subroutine forceimp(rimp,F)
+subroutine forceimp()
 ! Esta rutina calcula el potencial sentido por
 ! el He debido a la impureza. Sabiendo su posicion,
 ! evalua el potencial de interacion en la malla de trabajo.
-use classicimp , only: uimp
+use classicimp , only: uimp, rimp, F
 use deriva
 use grid
 use rho
@@ -68,8 +68,8 @@ end subroutine forceimp
 
 
 
-subroutine updatepoten(rimp)
-use classicimp , only: uimp!,Also2!,pairpot
+subroutine updatepoten()
+use classicimp , only: uimp_k, uimp, rimp!,Also2!,pairpot
 use grid
 use interpol
 implicit none
@@ -79,17 +79,23 @@ real    (kind=8)              :: r,yt,zt,rmod
 integer (kind=8)              :: ix,iy,iz,ir
 
 
- do iz=1,nz
-  zt = (z(iz)-rimp(3))**2
-  do iy=1,ny
-   yt = (y(iy)-rimp(2))**2 + zt
-   do ix=1,nx
-    r = dsqrt((x(ix)-rimp(1))**2 + yt)
-    ir = int(r/DelInter)+1
-    rmod = mod(r,DelInter)/DelInter
-      uimp(ix,iy,iz) =  potion(ir)*(1.d0-rmod) +  potion(ir+1)*rmod
+do k=1,N_imp
+  do iz=1,nz
+    zt = (z(iz)-rimp(k,3))**2
+    do iy=1,ny
+      yt = (y(iy)-rimp(k,2))**2 + zt
+      do ix=1,nx
+        r = dsqrt((x(ix)-rimp(k,1))**2 + yt)
+        ir = int(r/DelInter)+1
+        rmod = mod(r,DelInter)/DelInter
+        uimp_k(k,ix,iy,iz) =  potion(k,ir)*(1.d0-rmod) +  potion(k,ir+1)*rmod
+	  enddo
     enddo
-   enddo
   enddo
+enddo
+
+do k=1, N_imp
+	uimp(:,:,:) = uimp(:,:,:) + uimp_(k,:,:,:)
+enddo
 
 end subroutine updatepoten

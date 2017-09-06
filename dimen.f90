@@ -67,7 +67,35 @@ allocate ( wcgk(nx/2+1,ny,nz))    ! Array with the kernel of the coarse-graining
 !
    allocate( uext(nx,ny,nz))      ! Fourier transform of the impurity external potential
    If(Lsolid)allocate(penalty(nx,ny,nz))      ! Potential of penalty term, for the solid functional
-   allocate( uimp(nx,ny,nz))      ! Fourier transform of the impurity external potential
+   allocate(uimp(nx,ny,nz))      ! Fourier transform of the impurity external potential
+   allocate(uimp_k(N_imp,nx,ny,nz))      ! Fourier transform of the impurity external potential
+   allocate(qr(N_imp,3)); qr = 0.d0       ! Array test particles
+   allocate(qv(N_imp,3)); qv = 0.d0       ! Array test particles
+   allocate(Stor(N_imp,3)); Stor = 0.d0   ! Array test particles
+   allocate(pcr(N_imp,3)); pcr = 0.d0     ! Array test particles
+   allocate(pcv(N_imp,3)); pcv = 0.d0     ! Array test particles
+   allocate(rimp(N_imp,3))       ! Array test particles
+   allocate(vimp(N_imp,3))       ! Array test particles
+   allocate(aimp(N_imp,3))       ! Array test particles
+   allocate(F(N_imp,3))       ! Array test particles
+   allocate(rimpold(N_imp,3,3))       ! Array test particles
+   allocate(vimpold(N_imp,3,3))       ! Array test particles
+   allocate(aimpold(N_imp,3,2))       ! Array test particles
+   allocate(filerimp_k(N_imp))
+   allocate(filevimp_k(N_imp))
+   allocate(fileaimp_k(N_imp))
+   allocate(m_imp_u(N_imp))
+   allocate(m_imp(N_imp))
+   allocate(selec_gs_k(N_imp))
+   allocate(selec_gs_k_k(N_imp:N_imp))
+   allocate(drselec_gs_k_k(N_imp:N_imp))
+   allocate(r_cutoff_gs_k(N_imp))
+   allocate(r_cutoff_gs_k_k(N_imp,N_imp))
+   allocate(drr_cutoff_gs_k_k(N_imp,N_imp))
+   allocate(umax_gs_k(N_imp))
+   allocate(umax_gs_k_k(N_imp,N_imp))
+   allocate(drumax_gs_k_k(N_imp,N_imp))
+
 !  allocate(pairpot(nx,ny,nz,6))      ! Fourier transform of the impurity external potential
 !    allocate( uextimp(nx,ny,nz))      ! Fourier transform of the impurity external potential
 

@@ -70,12 +70,8 @@ integer    (kind=4)  :: iteraux		! Iter
 real       (kind=8)  :: Ktops=7.63822291d0
 real       (kind=8)  :: pstoK=1.d0/7.63822291d0
 real       (kind=8)  :: norma           ! Use for normalization
-real       (kind=8)  :: mimpur          ! Impurity mass in uma
 real       (kind=8)  :: denxmax         ! Maximum value for density of the impurity
-real       (kind=8)  :: r_clust         ! Radius of the helium cluster
-real       (kind=8)  :: rimpur=5.5      ! Radius of the impurity
 real       (kind=8)  :: p,px2,py2,pz2   ! Temporary variables for momentum values
-real       (kind=8)  :: mu4,mu4err      ! Value of Chemical potential and associated error
 real       (kind=8)  :: epsx,epsxerr    ! Value of autovalue and associated error
 real       (kind=8)  :: errmu4          ! Relative change betwen iteration for chemical potential
 real       (kind=8)  :: deltat=0.d0     ! Time step
@@ -109,7 +105,7 @@ integer    (kind=4)  :: n4=300         ! Number of helium_4 atoms
 integer    (kind=4)  :: mode=0          ! Way to start the program (see readen subroutine)
 integer    (kind=4)  :: instate=0          ! Way to start the program (see readen subroutine)
 integer    (kind=4)  :: iter0=0         ! Starting point for iteration procedure
-integer    (kind=4)  :: ncurr,pcurr
+integer    (kind=4)  :: ncurr,pcurr,k,m
 integer    (kind=4)  :: icurr = 0
 
 character  (len=40)  :: title         = 'Helium4 - 3dim.  '
@@ -150,7 +146,7 @@ namelist /input/title,fftwplan,nthread,nsfiles,                         &
                 fileout,filemonopol, filerimp,filevimp,fileaimp,        &
                 filedenin,filedenout,                                   &
                 fileimpin,fileimpout,                                   &
-                n4,mode,                                                &
+                n4,N_imp,mode,                                          &
                 nx,ny,nz,xmax,ymax,zmax,                                &
                 xc,yc,zc,afermi,                                        &
                 eps4,sigma4,core4,l,                                    &
@@ -158,20 +154,19 @@ namelist /input/title,fftwplan,nthread,nsfiles,                         &
                 denmin,psimin,npd,ndmax,icon,                           &
                 niter,printpot,pchem,irespar,                           &
                 pdenpar,pener,ppot,lsolid,                              &
-                ximp,yimp,zimp,rimpur,mimpur,                           &
                 deltat,lrkpc,lrk,xlamda,lselection,                     &
                 xlamdax,xlamday,xlamdaz,deltatps,                       &
                 xlamdax_x,xlamdax_y,xlamdax_z,iter0,time0,Zsurf,        &
                 pcurr,icurr,lsurf,lsurf3D,Lambdah,                      &
-                txmean,txsurf,tymean,tysurf,tzmean,tzsurf,              &
-                vximp,vyimp,vzimp,selec,r_cutoff,umax,                  &
-                selec_gs,r_cutoff_gs,umax_gs
- 
+                txmean,txsurf,tymean,tysurf,tzmean,tzsurf
+
+namelist /imp/rimp,vimp,m_imp_u,selec_gs_k,r_cutoff_gs_k,umax_gs_k,		&
+				selec_gs_k_k,r_cutoff_gs_k_k,umax_gs_k_k,				&
+				drselec_gs_k_k,drr_cutoff_gs_k_k,drumax_gs_k_k,			&
+				filerimp_k, filevimp_k, fileaimp_k
+
 !................................ Start main Program ..............................
 call timer(t0)
-selec_gs   =''
-r_cutoff_gs =-1.d0
-umax_gs     =-1.d0
 !.............................................
 !... Inicializate some numerical constants ...
 !.............................................
@@ -187,22 +182,9 @@ piq    = pi*pi
 !...............................
 read(5,nml=input,end=999)
 
-If(selec_gs.Eq.'')selec_gs=selec
-If(r_cutoff_gs.Lt.0.d0)r_cutoff_gs=r_cutoff
-If(umax_gs.Lt.0.d0)umax_gs=umax
-
-
 open(10,file="DFT4He3d.namelist.read")
 write(10,nml=input)
 
-Write(6,'("Potencial que utilizamos....:",A,/,"r_cutoff_gs,umax_gs..:"1p,2E15.6)')selec_gs,r_cutoff_gs,umax_gs
-
-call flush(10)
-
-!.......................................
-!... Define the mass of the impurity ...
-!.......................................
-mAg_u = mimpur*mp_u
 
 Allocate(pr%psi(nx,ny,nz))
 
@@ -221,8 +203,6 @@ if(tstgrid(nz).ne.0 ) stop 'SEVERE ERROR: NZ is not correct'
 !...................................................
 !.. Controls Paflov parameters (read and storage ...
 !...................................................
-
-
 
 close(5)
 close(10)
@@ -258,19 +238,6 @@ nthread=abs(nthread)
 
 Call Init_deriv_p(npd,ndmax,nthread)
 
-! if(mode.eq.2) then
-! !   if(.not.limp) then
-!      write(6,*) ' '
-!      write(6,*) ' Inconsistency input error.'
-!      write(6,*) ' '
-!      write(6,*) ' If mode=2. MUST be limp=.true.'
-!      write(6,*) ' '
-!      write(6,*) ' ACTION: ABORT EXECUTION'
-!      write(6,*) ' '
-!      STOP
-! !   end if
-! end if
-
 hx    = 2.0d0*abs(xmax)/(nx)  ! Step in x-grid
 hy    = 2.0d0*abs(ymax)/(ny)  ! Step in y-grid
 hz    = 2.0d0*abs(zmax)/(nz)  ! Step in z-grid
@@ -293,12 +260,21 @@ pmaxz = 1.0d0/(2.0d0*hz)      ! Maximum 'frequency' in Z-grid
 !...............................
 
 call dimen()
+open(1,file="imp.input")
+read(1,input)
+close(1)
 
+Write(6,'("Used potentials....:")')
+do k=1,N_imp
+  Write(6,'(A/,"r_cutoff_gs,umax_gs..:"1p,2E15.6)')selec_gs_k(k),r_cutoff_gs_k(k),umax_gs_k(k)
+  m_imp(k) = m_imp_u(k)*mp_u
+  do m=k+1,N_imp
+    Write(6,'(A/,"r_cutoff_gs_k_k,umax_gs_k_k..:"1p,2E15.6)')selec_gs_k_k(k,m),r_cutoff_gs_k_k(k,m),umax_gs_k_k(k,m)
+  enddo
+enddo
 !.....................................
 !.. Initial value of rimp and vimp ...
 !.....................................
-rimp = (/ximp,yimp,zimp/)
-vimp = (/vximp,vyimp,vzimp/)
 vimp = vimp*7.63822291d0 ! Because it is given in A/ps, we have to transform to A*K
 
 
@@ -376,7 +352,7 @@ call potenimpini() ! interpolation + first call to updatepoten
 !... read density or build-it ...
 !................................
 
-call readenc(n4,densat4,filedenin,fileimpin,mode,rimpur,r_clust)
+call readenc(n4,densat4,filedenin,fileimpin,mode)
 !...............................................................test
  do iz=1,nz ; do iy=1,ny ; do ix=1,nx 
   if(.not.(den(ix,iy,iz).gt.0))print*,ix,iy,iz,den(ix,iy,iz)
@@ -384,13 +360,7 @@ call readenc(n4,densat4,filedenin,fileimpin,mode,rimpur,r_clust)
 !...............................................................test
 
 
-! if(irespar.ne.0) then
-!    if(limp) then
-!       call respar(x,y,z,nx,ny,nz,2,'hedenini','impurdenini',den,denx)
-!    else
-      call respar(x,y,z,nx,ny,nz,1,'hedenini','hedenini',den,den)
-!    end if
-! end if
+call respar(x,y,z,nx,ny,nz,1,'hedenini','hedenini',den,den)
 
 !....................................
 !.. Print-out initial quantities  ...
@@ -402,11 +372,7 @@ write(6,6010) title
 
 select case(mode)
    case(0) !................................... Start a dynamic form static calcultaion
-!       if(limp) then
-!          write(6,6111) filedenin,filedenout,fileimpin,fileimpout
-!       else
          write(6,6011) filedenin,filedenout
-!       end if
    case(2) !................................... Continue a dynamic calculation from a prevous one
       write(6,6013) filedenout,fileimpout
    case(3) !................................... Continue a dynamic calculation from impurity with excited internal state
@@ -439,34 +405,6 @@ write(6,6037) cp4,cpp4,den4c,alphas,l,den0s,h2o2m4
 !...............
 !.. Impurity ...
 !...............
-
-! if(limp) then
-!    if(mimpur.lt.1.d-10) then
-!      print *,'********************'
-!      print *,'*** SEVERE ERROR ***'
-!      print *,'********************'
-!      print *,' '
-!      print *,'If LIMP=.TRUE. Mimpur cannor be zero...'
-!      print *,'  '
-!      print *,'PROGRAM CANCELLED'
-!    end if
-!    h2o2mx = h2o2m4*(4.d0/mimpur)
-!    write(6,6138) h2o2mx
-!    cnorm = sum(denx)*dxyz
-!    write(6,*) ' '
-!    write(6,*) '    Wave function normalization:   ',cnorm
-!    write(6,*) ' '
-!    write(6,*) '    Calculation with the impurity: ',elem
-!    write(6,fmt='(''         Atomic mass '',F10.3)') mimpur
-!    write(6,*) ' '
-!    write(6,*) '    Initial position of the impurity:'
-!    write(6,fmt='(''            X_imp = '',F10.5,'' A'')') ximp
-!    write(6,fmt='(''            Y_imp = '',F10.5,'' A'')') yimp
-!    write(6,fmt='(''            Z_imp = '',F10.5,'' A'')') zimp
-!    write(6,*) ' '
-! else
-!    write(6,*) '    Calculation without impurities.'
-! end if
 
 !...................................................................
 !... Compute the FFT of Lennard-Jones                            ...
@@ -525,51 +463,6 @@ write(6,*) '    Compute the FFT of the kernel of Lennard-Jones integrals.'
 
 call fforma(core4,b4,eps4,sigma4,h4,nx,ny,nz,pmod,fvlj4)
 
-!...........................................................
-!... Form factor for Impurity potential and prepare      ...
-!... arrays for the inclusion of the impurity            ...
-!...                                                     ...
-!.......................................................................
-!... If (mode=2), contnue a dynamic calculation from a previuos one  ...
-!.......................................................................
-
-! if(limp) then
-!   call potimpx()
-! Endif
-!if(limp) then
-!   if(irespar.ne.0) then
-!      open(31,file='PATIL.dat')
-!      do iz=1,nz
-!        aux = abs(z(iz))
-!        write(31,3100) z(iz),v_alka(aux,elem)
-!      end do
-!      close(31)
-!   end if
-!   call potimpx()
-!   call fftfw(den ,fden)
-!   call fftfw(denx,fdenx)
-!   forall(ix=1:nx/2+1,iy=1:ny,iz=1:nz)
-!     wk1(ix,iy,iz) = fden(ix,iy,iz)*vq(ix,iy,iz)
-!     wk2(ix,iy,iz) = fdenx(ix,iy,iz)*vq(ix,iy,iz)
-!   end forall
-!   call fftbk(wk1,upotx)                  ! Integral{denx*V_x}
-!   call fftbk(wk2,potx4)                  ! Integral{|Psi_x|**2 V_X}
-!   if(irespar.ne.0) call respar(x,y,z,nx,ny,nz,2,'potfol','upotx',potx4,upotx)
-!   do iz=1,nz
-!     do iy=1,ny
-!       do ix=1,nx
-!         if(potx4(ix,iy,iz).ge.umax) then
-!            den(ix,iy,iz) = denmin
-!         end if
-!       end do
-!     end do
-!   end do
-!   cnorm = n4/(sum(den)*dxyz)
-!   forall(ix=1:nx,iy=1:ny,iz=1:nz)
-!     den(ix,iy,iz) = cnorm*den(ix,iy,iz)
-!     psi(ix,iy,iz) = sqrt(den(ix,iy,iz))
-!   end forall
-!endif
 
 !........................................
 !.. Initialize coarse-graining kernel ...
@@ -605,27 +498,17 @@ auxn4 = sum(den)*dxyz
 if(xlamda.ne.0.d0)then
 write(*,*)'xlambda not equal zero'
 xlamdaz = xlamda*7.63822291d0/(2.d0*h2o2m4)
-! xlamdaz = xlamda*0.630247988
 endif
 
 If(mode.eq.0.And.Ldensity)then
    do iz=1,nz
      do iy=1,ny
        do ix=1,nx
-!         aux=(-x(ix)**2-y(iy)**2+2.d0*z(iz)**2)*xlamda
-!         aux=(x(ix)**2+y(iy)**2+z(iz)**2)*xlamda
          aux=x(ix)*xlamdax       &
             +y(iy)*xlamday       &
             +z(iz)*xlamdaz
          psi(ix,iy,iz) = sqrt(den(ix,iy,iz)) &
                        * cmplx(cos(aux),sin(aux))
-!          If(limp)Then
-!            aux=x(ix)*xlamdax_x     &
-!               +y(iy)*xlamdax_y     &
-!               +z(iz)*xlamdax_z
-!            psix(ix,iy,iz) = sqrt(denx(ix,iy,iz)) &
-!                          * cmplx(cos(aux),sin(aux))
-!          Endif
        end do
      end do
    end do
@@ -635,13 +518,12 @@ Endif
 !.................................
 
 den=Conjg(psi)*psi
-! if(limp)Then
-!   denx=Conjg(psix)*psix
-! Endif
-call potenimp(rimp)
+call potenimp()
 call poten()              ! First Potential  (for Lagrange Equation)
-call forceimp(rimp,aimp)
-aimp(:) = aimp(:)/mAg_u
+call forceimp()
+aimp_k(:,1) = aimp_k(:,1)/m_imp(:)
+aimp_k(:,2) = aimp_k(:,2)/m_imp(:)
+aimp_k(:,3) = aimp_k(:,3)/m_imp(:)
 call energy()             ! Calculate energies
 
 
@@ -649,34 +531,7 @@ call energy()             ! Calculate energies
 call respar(x,y,z,nx,ny,nz,1,'uimp','den',uimp,den)
 write(6,'("Number of He4 atoms",1P,E15.6)')auxn4
 write(6,6050) etot4,etot4/n4,ekin4,elj4,ealphas,esolid,ecor4
-! if(limp) then
   write(6,6060) eimpu,ekinx,eHeX,0.d0,etot
-!   write(6,6060) eimpu,ekinx,etot
-!   rimp = maxloc(denx)
-!   ximp = x(rimp(1))
-!   yimp = y(rimp(2))
-!   zimp = z(rimp(3))
-!   x0=ximp
-!   y0=yimp
-!   z0=zimp
-  write(6,6065) rimp(1),rimp(2),rimp(3)
-!   do iz=1,nz
-!     do iy=1,ny
-!       do ix=1,nx
-!         aux1=Sqrt((x(ix)-x0)**2+(y(iy)-y0)**2+(z(iz)-z0)**2)
-!         If(aux1.ne.0.d0)Then
-!           rmod0(ix,iy,iz)=1./aux1
-!         Else
-!           rmod0(ix,iy,iz)=0.0d0
-!         EndIf
-!         aux2=(aux1-Renv)/Aenv
-!         Epsix(ix,iy,iz)=1.d0/(1.d0+Exp(aux2))
-! !        Epsix(ix,iy,iz)=1.d0
-!       enddo
-!     enddo
-!   enddo
-! end if
-
 eold = etot4
 call flush(6)
 
@@ -689,11 +544,10 @@ call flush(6)
 do iz=1,nz
  do iy=1,ny
   do ix=1,nx
-!   timec(ix,iy,iz)=cmplx(Lambdah*(1.d0+tanh((abs(z(iz))-tzmean)/tzsurf)),1.d0)
    timec(ix,iy,iz)=cmplx(Lambdah*(1.d0+tanh((abs(x(ix))-txmean)/txsurf)            &
                                  +1.d0+tanh((abs(y(iy))-tymean)/tysurf)            &
                                  +1.d0+tanh((abs(z(iz))-tzmean)/tzsurf))           &
-                                                                        ,1.d0)
+                                 ,1.d0)
   enddo
  enddo
 enddo
@@ -710,103 +564,36 @@ do iz=1,nz
 enddo
 close(32)
 
-open(81,file=filerimp)
-open(82,file=filevimp)
-open(83,file=fileaimp)
-!open(81,file=filemonopol)
-! 
-! aux1=0.0d0
-! aux2=0.0d0
-! aux3=0.0d0
-! aux4=0.0d0
-! aux5=0.0d0
-! aux6=0.0d0
-! do iz=1,nz
-!   do iy=1,ny
-!     do ix=1,nx
-!       aux1=aux1+den(ix,iy,iz)*x(ix)
-!       aux2=aux2+den(ix,iy,iz)*y(iy)
-!       aux3=aux3+den(ix,iy,iz)*z(iz)
-! !       If(limp)Then
-! !         aux4=aux4+denx(ix,iy,iz)*x(ix)
-! !         aux5=aux5+denx(ix,iy,iz)*y(iy)
-! !         aux6=aux6+denx(ix,iy,iz)*z(iz)
-! !       Endif
-!     enddo
-!   enddo
-! enddo
-! aux1=aux1*dxyz/n4
-! aux2=aux2*dxyz/n4
-! aux3=aux3*dxyz/n4
-! aux4=aux4*dxyz
-! aux5=aux5*dxyz
-! aux6=aux6*dxyz
-! If(limp)Then
-!   write(81,1381)iter0*deltat,aux1,aux2,aux3,aux4,aux5,aux6
-! Else
-! write(81,1381)iter0*deltat,aux1,aux2,aux3
-! Endif
-call flush(81)
-1381 format(1x,1p,e15.6,6e20.10)
+do k=1,N_imp
+  open(unit=(100+k), file=filerimp_k(k))
+  open(unit=(200+k), file=filevimp_k(k))
+  open(unit=(300+k), file=fileaimp_k(k))
+enddo
 
 lfilepv  = .false.
 
-! write(6,7000)
 call timer(t5)
-
-
-!  Compute external potential
-!   Surface TiO2
-if(lsurf)then
- write(*,*)'Compute surface potential'
- if(lsurf3D)then
-   do iz=1,nz
-    do iy=1,ny
-     do ix=1,nx
-          uext(ix,iy,iz) = min(3000.d0,Morse_HeTiO2_3D(x(ix),y(iy),z(iz)-Zsurf))
-!        uextimp(ix,iy,iz) = min(3000.d0,?????????(x(ix),y(iy),z(iz)-Zsurf))
-     enddo
-    enddo
-   enddo
- else
-   do iz=1,nz
-    do iy=1,ny
-     do ix=1,nx
-          uext(ix,iy,iz) = min(3000.d0,Morse_HeTiO2_1D(z(iz)-Zsurf))
-!        uextimp(ix,iy,iz) = min(3000.d0,?????????(z(iz)-Zsurf))
-     enddo
-    enddo
-   enddo
- endif
-else
- write(*,*)"Dont Compute surface potential"
- uext(:,:,:)=0.d0
-endif
-
 
 open(unit=42,file='uext.dat')
  do iz=1,nz
      write(42,*)z(iz),uext(3,5,iz)
  enddo
- 
 close(42)
-write(*,*)'Compute surface potential - done'
-!       print*,rimp
-!       print*,vimp
-qr(:) = 0.d0
-qv(:) = 0.d0
-! q(:,:,:)=0.d0
-rimpold(:,:) = 0.d0
-vimpold(:,:) = 0.d0
-aimpold(:,:) = 0.d0
 
+qr = 0.d0
+qv = 0.d0
+rimpold = 0.d0
+vimpold = 0.d0
+aimpold = 0.d0
 
-write(81,'("# Tiempo(ps), x(AA), y(AA), z(AA)")')
-write(81,'(1x,1p,E15.6,3E18.10)')time0, rimp(1), rimp(2), rimp(3)
-write(82,'("# Tiempo(ps), Vx(AA/ps), Vy(AA/ps), Vz(AA/ps)")')
-write(82,'(1x,1p,E15.6,3E18.10)')time0, vimp(1)*pstoK, vimp(2)*pstoK, vimp(3)*pstoK
-write(83,'("# Tiempo(ps), Ax(AA/ps**2), Ay(AA/ps**2), Az(AA/ps**2)")')
-write(83,'(1x,1p,E15.6,3E18.10)')time0, aimp(1)*pstoK*pstoK, aimp(2)*pstoK*pstoK, aimp(3)*pstoK*pstoK
+do k=1,N_imp
+  write((100+k),'("# Tiempo(ps), x(AA), y(AA), z(AA)")')
+  write((100+k),'(1x,1p,E15.6,3E18.10)')time0, rimp(k,1), rimp(k,2), rimp(k,3)
+  write((200+k),'("# Tiempo(ps), Vx(AA/ps), Vy(AA/ps), Vz(AA/ps)")')
+  write((200+k),'(1x,1p,E15.6,3E18.10)')time0, vimp(k,1)*pstoK, vimp(k,2)*pstoK, vimp(k,3)*pstoK
+  write((300+k),'("# Tiempo(ps), Ax(AA/ps**2), Ay(AA/ps**2), Az(AA/ps**2)")')
+  write((300+k),'(1x,1p,E15.6,3E18.10)')time0, aimp(k,1)*pstoK*pstoK, aimp(k,2)*pstoK*pstoK, aimp(k,3)*pstoK*pstoK
+enddo
 
 pr%it0   = iter0
 pr%time0 = time0
@@ -820,9 +607,6 @@ pr%hz    = hz
 pr%xmax  = xmax
 pr%ymax  = ymax
 pr%zmax  = zmax
-pr%selec_gs    = selec_gs
-pr%r_cutoff_gs = r_cutoff_gs
-pr%umax_gs     = umax_gs
 
 !mesure du temps
 ! Temps CPU de calcul initial.
@@ -846,22 +630,21 @@ pr%it = iter
       write(6,'(" Error( He, imp) (From Steppc)...",1p,2E15.6)')errHe,errimp
     endif
 
-    call potenimp(rimp)
+    call potenimp()
     call poten()
-    call forceimp(rimp,aimp)
-    aimp(:) = aimp(:)/mAg_u
+    call forceimp()
+	aimp_k(:,1) = aimp_k(:,1)/m_imp(:)
+	aimp_k(:,2) = aimp_k(:,2)/m_imp(:)
+	aimp_k(:,3) = aimp_k(:,3)/m_imp(:)
 
     aux1 = time0 + Iteraux*deltatps
     temps = aux1
 
-write(81,'(1x,1p,E15.6,3E18.10)')aux1, rimp(1), rimp(2), rimp(3)
-write(82,'(1x,1p,E15.6,3E18.10)')aux1, vimp(1)*pstoK, vimp(2)*pstoK, vimp(3)*pstoK
-write(83,'(1x,1p,E15.6,3E18.10)')aux1, aimp(1)*pstoK*pstoK, aimp(2)*pstoK*pstoK, aimp(3)*pstoK*pstoK
-
-call flush(81)
-call flush(82)
-call flush(83)
-
+	do k=1,N_imp
+  	  write((100+k),'(1x,1p,E15.6,3E18.10)')aux1, rimp(k,1), rimp(k,2), rimp(k,3)
+  	  write((200+k),'(1x,1p,E15.6,3E18.10)')aux1, vimp(k,1)*pstoK, vimp(k,2)*pstoK, vimp(k,3)*pstoK
+  	  write((300+k),'(1x,1p,E15.6,3E18.10)')aux1, aimp(k,1)*pstoK*pstoK, aimp(k,2)*pstoK*pstoK, aimp(k,3)*pstoK*pstoK
+	enddo
 
    if(mod(iter,pener).eq.0) then          ! Compute New energy and max of density
 
@@ -962,8 +745,6 @@ call flush(83)
         pr%etot    = etot
         pr%time    = temps
         write(6,7100) xcm4,ycm4,zcm4
-        write(6,'(" Impurity position:",1p,3E15.6)')rimp
-        write(6,'(" Impurity velocity:",1p,3E15.6)')vimp
 
    end if
 
@@ -987,11 +768,8 @@ call flush(83)
       end select
       namefile='density.'//chariter//'.dat'
       pr%namefile = namefile
-      pr%rimp(:) = rimp(:)
-      pr%vimp(:) = vimp(:)
       pr%psi(:,:,:) = psi(:,:,:)
        call printoutc(pr)
-
    endif
 
 !..............................................................................
@@ -999,7 +777,6 @@ call flush(83)
 !..............................................................................
 
    call timer(t6)                         ! Compute use time
-
    t5=t6
 end do
 
@@ -1013,13 +790,9 @@ t_cpu = t_cpu_1 - t_cpu_0
 ! affichage temps 
 print*, "elapsed partie iterative : ", temps_ela
 print*, "cpu_time partie iterative : ", t_cpu
-
       pr%namefile = filedenout
-      pr%rimp(:) = rimp(:)
-      pr%vimp(:) = vimp(:)
       pr%psi(:,:,:) = psi(:,:,:)
        call printoutc(pr)
-
 call timer(t4)
 print *,' Total  ',t4-t0
 

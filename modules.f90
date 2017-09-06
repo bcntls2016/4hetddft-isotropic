@@ -280,41 +280,42 @@ complex (kind=8), allocatable :: pc(:,:,:), pcx(:,:,:)         ! Auxiliar arrays
 end module rkpc
 !------------------------------------------------------------------
 module classicimp
-real    (kind=8)              :: rimp(3)
-! real    (kind=8)              :: tmprimp(3) ! temporal rimp used to computed uimp.
-real    (kind=8)              :: vimp(3)
-real    (kind=8)              :: aimp(3)
-real    (kind=8)              :: ximp=0.0d0   ! Position of the impurity  X-ccordinate.
-real    (kind=8)              :: yimp=0.0d0   !  "        "  "   "        Y-Coordinate
-real    (kind=8)              :: zimp=0.0d0   !  "        "  "   "        Z-Coordinate
-real    (kind=8)              :: vximp=0.0d0  ! Velocity of the impurity  X-ccordinate.
-real    (kind=8)              :: vyimp=0.0d0  !  "        "  "   "        Y-Coordinate
-real    (kind=8)              :: vzimp=0.0d0  !  "        "  "   "        Z-Coordinate
+real    (kind=8), allocatable :: rimp(:,:)
+real    (kind=8), allocatable :: vimp(:,:)
+real    (kind=8), allocatable :: aimp(:,:)
+real    (kind=8), allocatable :: F(:,:)
+real    (kind=8), allocatable :: F_ij(:,:)
 real    (kind=8), allocatable :: uimp(:,:,:)  !  Potencial from imp for He
+real    (kind=8), allocatable :: uimp_k(:,:,:,:)  !  Potencial from imp_k for He
 logical                       :: lselection = .true.
-
-
-!real    (kind=8), allocatable :: pairpot(:,:,:,:)  !  Potencial from imp for He
-!
-
-
-! real    (kind=8), allocatable :: uextimp(:,:,:)  !  External potencial for the impurity
-! real    (kind=8)              :: mimp ! Impurity mass, expressed in Kelvin*(ps/A)**2
-! cosas para step(rk/pc):
-real    (kind=8)              :: qr(3)
-real    (kind=8)              :: qv(3)
-real    (kind=8)              :: rimpold(3,3)
-real    (kind=8)              :: vimpold(3,3)
-real    (kind=8)              :: aimpold(3,2)
+real    (kind=8), allocatable              :: qr(:,:)
+real    (kind=8), allocatable              :: qv(:,:)
+real    (kind=8), allocatable              :: rimpold(:,:,:)
+real    (kind=8), allocatable              :: vimpold(:,:,:)
+real    (kind=8), allocatable              :: aimpold(:,:,:)
 integer (kind=4)              :: ioldr(3)
 integer (kind=4)              :: ioldv(3)
 integer (kind=4)              :: iolda(2)
-real    (kind=8)              :: pcr(3)
-real    (kind=8)              :: pcv(3)
-!
+integer (kind=4)              :: N_imp=1 ! Number of impurities. Default is one impurity
+real    (kind=8), allocatable              :: pcr(:,:)
+real    (kind=8), allocatable              :: pcv(:,:)
 real    (kind=8) , parameter   :: mp_u = 0.02061484d0  ! proton mass in Angs**-2 * Kelvin**-1, go figure!
-real    (kind=8)               :: mAg_u = 0.d0  ! argon mass in Angs**-2 * Kelvin**-1, go figure!
-real    (kind=8)               :: dVomAg  ! dxyz/argon mass
+real    (kind=8), allocatable :: m_imp_u(:)  ! argon mass in Angs**-2 * Kelvin**-1, go figure!
+real    (kind=8), allocatable :: m_imp(:)  ! argon mass in Angs**-2 * Kelvin**-1, go figure!
+character (len=80), allocatable :: selec_gs_k(:)
+character (len=80), allocatable :: selec_gs_k_k(:,:)
+character (len=80), allocatable :: drselec_gs_k_k(:,:)
+character (len=80), allocatable :: filerimp_k(:)
+character (len=80), allocatable :: filevimp_k(:)
+character (len=80), allocatable :: fileaimp_k(:)
+real    (kind=8), allocatable :: r_cutoff_gs_k(:)  ! argon mass in Angs**-2 * Kelvin**-1, go figure!
+real    (kind=8), allocatable :: r_cutoff_gs_k_k(:,:)  ! argon mass in Angs**-2 * Kelvin**-1, go figure!
+real    (kind=8), allocatable :: drr_cutoff_gs_k_k(:,:)  ! argon mass in Angs**-2 * Kelvin**-1, go figure!
+real    (kind=8), allocatable :: umax_gs_k(:)  ! argon mass in Angs**-2 * Kelvin**-1, go figure!
+real    (kind=8), allocatable :: umax_gs_k_k(:,:)  ! argon mass in Angs**-2 * Kelvin**-1, go figure!
+real    (kind=8), allocatable :: drumax_gs_k_k(:,:)  ! argon mass in Angs**-2 * Kelvin**-1, go figure!
+!
+
 
 ! logical                        :: newpoten = .true.
 end module classicimp
@@ -362,7 +363,7 @@ end module Aziz
 !------------------------------------------------------------------
 module interpol
 real      (kind=8) :: DelInter
-real      (kind=8) , allocatable :: potion(:) 
+real      (kind=8) , allocatable :: potion(:,:) 
 integer   (kind=4) :: npot
 !real      (kind=8) , allocatable :: Vion(:,:,:) 
 !real      (kind=8) :: lastr(3)
