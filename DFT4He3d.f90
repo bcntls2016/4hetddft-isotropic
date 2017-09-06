@@ -269,7 +269,7 @@ pmaxz = 1.0d0/(2.0d0*hz)      ! Maximum 'frequency' in Z-grid
 
 call dimen()
 open(1,file="imp.input")
-read(1,imp)
+read(1,nml=imp)
 close(1)
 
 Write(6,'("Used potentials....:")')
@@ -277,13 +277,13 @@ do k=1,N_imp
   pr%selec_gs_k(k)=selec_gs_k(k)
   pr%r_cutoff_gs_k(k)=r_cutoff_gs_k(k)
   pr%umax_gs_k(k)=umax_gs_k(k)
-  Write(6,'(A/,"r_cutoff_gs,umax_gs..:"1p,2E15.6)')selec_gs_k(k),r_cutoff_gs_k(k),umax_gs_k(k)
+  Write(6,'(A/,"selc_gs,r_cutoff_gs,umax_gs..:"1p,2E15.6)')selec_gs_k(k),r_cutoff_gs_k(k),umax_gs_k(k)
   m_imp(k) = m_imp_u(k)*mp_u
   do m=k+1,N_imp
     pr%selec_gs_k_k(k,m)=selec_gs_k_k(k,m)
 	pr%r_cutoff_gs_k_k(k,m)=r_cutoff_gs_k_k(k,m)
 	pr%umax_gs_k_k(k,m)=umax_gs_k_k(k,m)
-    Write(6,'(A/,"r_cutoff_gs_k_k,umax_gs_k_k..:"1p,2E15.6)')selec_gs_k_k(k,m),r_cutoff_gs_k_k(k,m),umax_gs_k_k(k,m)
+    Write(6,'(A/,"selec_gs_k_k,r_cutoff_gs_k_k,umax_gs_k_k..:"1p,2E15.6)')selec_gs_k_k(k,m),r_cutoff_gs_k_k(k,m),umax_gs_k_k(k,m)
   enddo
 enddo
 !.....................................
