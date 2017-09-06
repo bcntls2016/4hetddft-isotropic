@@ -80,6 +80,12 @@ Double Precision Function  V_gs(r)
       Real      (Kind=8) :: r
       V_delta=Select_pot(selec_delta,r,r_cutoff_delta,umax_delta)
   End Function V_delta
+  Double Precision Function V_Sigma_Pi(r)
+  use seleccio_de_potencial
+      Implicit none
+      Real      (Kind=8) :: r, V_Sigma, V_Pi
+      V_Sigma_Pi=(V_Sigma(r) - V_Pi(r))/r**2
+  End Function V_Sigma_Pi
 
 Double Precision Function Select_Pot(selec,r,r_cutoff,umax)
 
@@ -89,11 +95,17 @@ Logical       :: Lcontrol=.false.        ! Per verificar el funcionament correct
 Character (Len=80) :: selec
 Real (Kind=8) :: r, r_cutoff, umax
 Real (Kind=8) :: V_null=0.d0             ! selec='null'    Potencial de interacció nul
+Real (Kind=8) :: V_Ar_Ar                 ! selec='Ar_Ar'          Potencial Xe-He Tang & Toennies Z. Phys. D 1, 91-101 (1986)
+Real (Kind=8) :: V_Xe_Xe                 ! selec='Xe_Xe'          Potencial Xe-He Tang & Toennies Z. Phys. D 1, 91-101 (1986)
+Real (Kind=8) :: drV_Ar_Ar               ! selec='dr_Ar_Ar'       Potencial Xe-He Tang & Toennies Z. Phys. D 1, 91-101 (1986)
+Real (Kind=8) :: drV_Xe_Xe               ! selec='dr_Xe_Xe'       Potencial Xe-He Tang & Toennies Z. Phys. D 1, 91-101 (1986)
 Real (Kind=8) :: V_Ar_He                 ! selec='Ar_He'          Potencial Xe-He Tang & Toennies Z. Phys. D 1, 91-101 (1986)
 Real (Kind=8) :: Au_Graphene             ! selec='Au_Graphene'    Potencial de interacció Au-Graphe
 Real (Kind=8) :: Ag_Graphene             ! selec='Ag_Graphene'    Potencial de interacció Ag-Graphe
+Real (Kind=8) :: V_Ag_Graphene_Amorf     ! selec='Ag_Graphene_Amorf'    Potencial de interacció Ag-Graphe
 Real (Kind=8) :: dz_Au_Graphene          ! selec='dz_Au_Graphene' Gradient del Potencial de interacció Au-Graphe
 Real (Kind=8) :: dz_Ag_Graphene          ! selec='dz_Ag_Graphene' Gradient del Potencial de interacció Ag-Graphe
+Real (Kind=8) :: dzV_Ag_Graphene_Amorf   ! selec='dz_Ag_Graphene_Amorf' Gradient del Potencial de interacció Ag-Graphe
 Real (Kind=8) :: V_LJ_OT                 ! selec='LJ_OT'   Potencial de Lenard-Jones capat a la Orsay-Trento
 Real (Kind=8) :: V_Aziz_He               ! selec='Aziz_He' Potencial de Aziz pel He
 Real (Kind=8) :: V_alka                  ! selec='LI', 'NA', 'K', 'RB' o 'CS' Potencials de Patil
@@ -104,6 +116,7 @@ Real (Kind=8) :: V_Koutselos_K_plus_gs   ! selec='K_plus_Koutselos'
 Real (Kind=8) :: V_Koutselos_Rb_plus_gs  ! selec='Rb_plus_Koutselos'
 Real (Kind=8) :: V_Koutselos_Na_plus_gs  ! selec='Na_plus_Koutselos'
 Real (Kind=8) :: V_Fausto_Rb_plus_gs     ! selec='Rb_plus_Fausto'    New: computed by Fausto
+Real (Kind=8) :: V_Ca                    ! selec='Ca'          Mauschick and Meyer 1989
 Real (Kind=8) :: V_Ba_gs                 ! selec='Ba_gs'          Lovallo potential
 Real (Kind=8) :: V_Ba_plus_old_gs        ! selec='Ba_plus_old_gs'
 Real (Kind=8) :: V_Ba_plus_gs_fixC4      ! selec='Ba_plus_gs_fix_C4'
@@ -921,6 +934,104 @@ ElseIf(Trim(selec).Eq.'K_5s')Then
    If(Lcontrol)Then
      Write(6,'("selec....:",A80)')selec
      Write(6,'("Hem trucat a V_K_5s(r)")')
+   Endif
+ElseIf(Trim(selec).Eq.'Ag_Graphene_Amorf')Then
+!
+!  r_cutoff= 2.d0
+!  umax    = 2.243286d3
+!
+   If(r.lt.r_cutoff)Then
+     Select_pot = umax
+   Else
+     Select_pot = V_Ag_Graphene_Amorf(r)
+   Endif
+   If(Lcontrol)Then
+     Write(6,'("selec....:",A80)')selec
+     Write(6,'("Hem trucat a V_Ag_Graphene_Amorf(r)")')
+   Endif
+ElseIf(Trim(selec).Eq.'dz_Ag_Graphene_Amorf')Then
+!
+!  r_cutoff= 2.2d0
+!  umax    = -6.976782d3
+!
+   If(r.lt.r_cutoff)Then
+     Select_pot = umax
+   Else
+     Select_pot = dzV_Ag_Graphene_Amorf(r)
+   Endif
+   If(Lcontrol)Then
+     Write(6,'("selec....:",A80)')selec
+     Write(6,'("Hem trucat a dzV_Ag_Graphene_Amorf(r)")')
+   Endif
+ElseIf(Trim(selec).Eq.'Ca')Then
+!
+!  r_cutoff= 2.5d0
+!  umax    = 7.7661179647d3
+!
+   If(r.lt.r_cutoff)Then
+     Select_pot = umax
+   Else
+     Select_pot = V_Ca(r)
+   Endif
+   If(Lcontrol)Then
+     Write(6,'("selec....:",A80)')selec
+     Write(6,'("Hem trucat a V_Ca(r)")')
+   Endif
+ElseIf(Trim(selec).Eq.'Ar_Ar')Then
+!
+!  r_cutoff= 2.5d0
+!  umax    = 7.7661179647d3
+!
+   If(r.lt.r_cutoff)Then
+     Select_pot = umax
+   Else
+     Select_pot = V_Ar_Ar(r)
+   Endif
+   If(Lcontrol)Then
+     Write(6,'("selec....:",A80)')selec
+     Write(6,'("Hem trucat a V_Ar_Ar(r)")')
+   Endif
+ElseIf(Trim(selec).Eq.'Xe_Xe')Then
+!
+!  r_cutoff= 2.5d0
+!  umax    = 7.7661179647d3
+!
+   If(r.lt.r_cutoff)Then
+     Select_pot = umax
+   Else
+     Select_pot = V_Xe_Xe(r)
+   Endif
+   If(Lcontrol)Then
+     Write(6,'("selec....:",A80)')selec
+     Write(6,'("Hem trucat a V_Xe_Xe(r)")')
+   Endif
+ElseIf(Trim(selec).Eq.'dr_Xe_Xe')Then
+!
+!  r_cutoff= 2.5d0
+!  umax    = 7.7661179647d3
+!
+   If(r.lt.r_cutoff)Then
+     Select_pot = umax
+   Else
+     Select_pot = drV_Xe_Xe(r)
+   Endif
+   If(Lcontrol)Then
+     Write(6,'("selec....:",A80)')selec
+     Write(6,'("Hem trucat a drV_Xe_Xe(r)")')
+   Endif
+ElseIf(Trim(selec).Eq.'dr_Ar_Ar')Then
+!
+!  r_cutoff= 2.5d0
+!  umax    = 7.7661179647d3
+!
+   If(r.lt.r_cutoff)Then
+     Select_pot = umax
+   Else
+     Select_pot = drV_Ar_Ar(r)
+   Endif
+   If(Lcontrol)Then
+     Write(6,'("selec....:",A80)')selec
+     Write(6,'("Hem trucat a drV_Ar_Ar(r)")')
    Endif
 Else
    Write(6,'(A,": aquest potencial no està definit, de part de: Selec_Pot")')Trim(Selec)
@@ -3310,8 +3421,57 @@ EndDo
 V_K_4p_Pi=Sto
 Return
 End
+!!
+!! Function for He-K(5s), From Pascale data potential (old Fit by Marti)
+!!
+!Block Data Inicio_LJ_V_K_5s
+!Implicit Real*8(A-H,O-Z)
+!Parameter(Npg=20)
+!Real*16 Pg
+!Integer*4 k0
+!Common/Param_LJ_V_K_5s/rcutoff,fcutoff,r0,aa,bb,cc,Pg(Npg),k0
+!Data Pg/                           &
+!  22013374032.6756992466989907471231Q0, -2607473486972.96115845928542359422Q0,  137278559465513.504318508804350585Q0,  &
+! -4284085369698061.73976060584229719Q0,  89194755667933302.9197442829881481Q0, -1322401314191165810.56518310532255Q0,  &
+!  14549200062430442236.7345712007885Q0, -122132199482850453201.933729576988Q0,  797237288979113873142.546850234427Q0,  &
+! -4098091530865115675119.54131140732Q0,  16712660424005787663159.1277264440Q0, -54228388406852069443691.0811371931Q0,  &
+!  139769338235053275092644.042876545Q0, -284264086314955716327432.688486366Q0,  450393287366663046416997.448177291Q0,  &
+! -544150565669437497681315.135493803Q0,  484098752094243106107299.506791578Q0, -298854633397265157385967.162411014Q0,  &
+!  114324971752633317584036.132040739Q0, -20408914798270344038969.9560381946Q0/ 
+!Data rcutoff/ 2.0000000000000000D+00/
+!Data fcutoff/ 2.7298080000000000D+03/
+!Data r0/-2.0000000000000000D+00/
+!Data aa/-1.1118034495930548D+05/
+!Data bb/ 4.7153152909318462D+05/
+!Data cc/-4.9833086495060596D+05/
+!Data k0/   5/
+!End
+!Double Precision Function V_K_5s(x)
+!Parameter(Npg=20)
+!Implicit Real*8(A-H,O-Z)
+!Real*16 Pg,Sto,xq,Aux
+!Integer*4 k0
+!Common/Param_LJ_V_K_5s/rcutoff,fcutoff,r0,aa,bb,cc,Pg(Npg),k0
+!If(x.le.rcutoff)Then
+!  V_K_5s=fcutoff
+!  Return
+!Endif
+!If(x.le.r0)Then
+!  V_K_5s=Abs(aa*x**2+bb*x+cc)
+!  Return
+!Endif
+!Sto=0.0q0
+!xq=1.0q0/x
+!Aux=xq**(k0+1)
+!Do k=1,Npg
+!  Sto=Sto+pg(k)*Aux
+!  Aux=Aux*xq
+!EndDo
+!V_K_5s=Sto
+!Return
+!End
 !
-! Function for He-K(5s), From Pascale data potential
+! Function for He-K(5s), From Pascale data potential (new fit from Maxime Martinez)
 !
 Block Data Inicio_LJ_V_K_5s
 Implicit Real*8(A-H,O-Z)
@@ -3320,15 +3480,15 @@ Real*16 Pg
 Integer*4 k0
 Common/Param_LJ_V_K_5s/rcutoff,fcutoff,r0,aa,bb,cc,Pg(Npg),k0
 Data Pg/                           &
-  22013374032.6756992466989907471231Q0, -2607473486972.96115845928542359422Q0,  137278559465513.504318508804350585Q0,  &
- -4284085369698061.73976060584229719Q0,  89194755667933302.9197442829881481Q0, -1322401314191165810.56518310532255Q0,  &
-  14549200062430442236.7345712007885Q0, -122132199482850453201.933729576988Q0,  797237288979113873142.546850234427Q0,  &
- -4098091530865115675119.54131140732Q0,  16712660424005787663159.1277264440Q0, -54228388406852069443691.0811371931Q0,  &
-  139769338235053275092644.042876545Q0, -284264086314955716327432.688486366Q0,  450393287366663046416997.448177291Q0,  &
- -544150565669437497681315.135493803Q0,  484098752094243106107299.506791578Q0, -298854633397265157385967.162411014Q0,  &
-  114324971752633317584036.132040739Q0, -20408914798270344038969.9560381946Q0/ 
-Data rcutoff/ 2.0000000000000000D+00/
-Data fcutoff/ 2.7298080000000000D+03/
+ -1168397771.45542931556701660156250Q0,  118762977694.007186889648437500000Q0, -5067632180013.47558593750000000000Q0,  &
+  119820387630240.453125000000000000Q0, -1770902027637011.75000000000000000Q0,  17565225586361198.0000000000000000Q0,  &
+ -122078985717169440.000000000000000Q0,  608590024952670464.000000000000000Q0, -2190107282135850496.00000000000000Q0,  &
+  5613121256762224640.00000000000000Q0, -9769037125165985792.00000000000000Q0,  9996223050685026304.00000000000000Q0,  &
+ -2343730974240809984.00000000000000Q0, -7106519104385017856.00000000000000Q0,  5621562826636969984.00000000000000Q0,  &
+  4921614491484340224.00000000000000Q0, -6352243461664580608.00000000000000Q0, -4076025095303220224.00000000000000Q0,  &
+  8675010493626412032.00000000000000Q0, -3523847995886618112.00000000000000Q0/
+Data rcutoff/ 1.980000000000000D+00/
+Data fcutoff/ 2.946118600000D+03/
 Data r0/-2.0000000000000000D+00/
 Data aa/-1.1118034495930548D+05/
 Data bb/ 4.7153152909318462D+05/
@@ -3357,5 +3517,415 @@ Do k=1,Npg
   Aux=Aux*xq
 EndDo
 V_K_5s=Sto
+Return
+End
+!
+! Function for Ag-Amorf_Graphene, From Pilar & Ricardo
+!
+Block Data Inicio_LJ_V_Ag_Graphene_Amorf
+Implicit Real*8(A-H,O-Z)
+Parameter(Npg=20)
+Real*16 Pg
+Integer*4 k0
+Common/Param_LJ_V_Ag_Graphene_Amorf/rcutoff,fcutoff,r0,aa,bb,cc,Pg(Npg),k0
+Data Pg/                           &
+  6520053292.61616126880185962278597Q0, -918464943394.461620370979352927232Q0,  55277361903554.6322625907166690706Q0,  &
+ -1908687721418280.26519637838045051Q0,  42876752253768590.0379531867092950Q0, -673631689880263937.577513289837356Q0,  &
+  7753571958855461494.03223442954254Q0, -67456829997827292426.0143033339887Q0,  453140328806614255951.042844599700Q0,  &
+ -2383712935315990337409.86157129657Q0,  9903388137504520111389.34436541863Q0, -32614132404123601870878.9652482507Q0,  &
+  85047981814704420869972.3572341441Q0, -174535601306065036127719.999618677Q0,  278400480074652198718256.087011167Q0,  &
+ -337958051090618684547853.261359119Q0,  301590125879860950437663.888010620Q0, -186494245763497980212184.175837030Q0,  &
+  71375363687513215919486.0552441231Q0, -12734873402816982253348.4841107942Q0/ 
+Data rcutoff/ 2.0000000000000000D+00/
+Data fcutoff/ 2.2432860000000001D+03/
+Data r0/-2.0000000000000000D+00/
+Data aa/-8.9557209992220247D+04/
+Data bb/ 3.8053908634304180D+05/
+Data cc/-4.0283715595284803D+05/
+Data k0/   5/
+End
+Double Precision Function V_Ag_Graphene_Amorf(x)
+Parameter(Npg=20)
+Implicit Real*8(A-H,O-Z)
+Real*16 Pg,Sto,xq,Aux
+Integer*4 k0
+Common/Param_LJ_V_Ag_Graphene_Amorf/rcutoff,fcutoff,r0,aa,bb,cc,Pg(Npg),k0
+If(x.le.rcutoff)Then
+  V_Ag_Graphene_Amorf=fcutoff
+  Return
+Endif
+If(x.le.r0)Then
+  V_Ag_Graphene_Amorf=Abs(aa*x**2+bb*x+cc)
+  Return
+Endif
+Sto=0.0q0
+xq=1.0q0/x
+Aux=xq**(k0+1)
+Do k=1,Npg
+  Sto=Sto+pg(k)*Aux
+  Aux=Aux*xq
+EndDo
+V_Ag_Graphene_Amorf=Sto
+Return
+End
+!
+! Function for dzV_Ag-Amorf_Graphene, From Pilar & Ricardo
+!
+Block Data Inicio_LJ_dzV_Ag_Graphene_Amorf
+Implicit Real*8(A-H,O-Z)
+Parameter(Npg=20)
+Real*16 Pg
+Integer*4 k0
+Common/Param_LJ_dzV_Ag_Graphene_Amorf/rcutoff,fcutoff,r0,aa,bb,cc,Pg(Npg),k0
+Data Pg/                           &
+  6520053292.61616126880185962278597Q0, -918464943394.461620370979352927232Q0,  55277361903554.6322625907166690706Q0,  &
+ -1908687721418280.26519637838045051Q0,  42876752253768590.0379531867092950Q0, -673631689880263937.577513289837356Q0,  &
+  7753571958855461494.03223442954254Q0, -67456829997827292426.0143033339887Q0,  453140328806614255951.042844599700Q0,  &
+ -2383712935315990337409.86157129657Q0,  9903388137504520111389.34436541863Q0, -32614132404123601870878.9652482507Q0,  &
+  85047981814704420869972.3572341441Q0, -174535601306065036127719.999618677Q0,  278400480074652198718256.087011167Q0,  &
+ -337958051090618684547853.261359119Q0,  301590125879860950437663.888010620Q0, -186494245763497980212184.175837030Q0,  &
+  71375363687513215919486.0552441231Q0, -12734873402816982253348.4841107942Q0/ 
+Data rcutoff/ 2.2000000000000000D+00/
+Data fcutoff/ -6.976782d3/
+Data r0/-2.0000000000000000D+00/
+Data aa/-8.9557209992220247D+04/
+Data bb/ 3.8053908634304180D+05/
+Data cc/-4.0283715595284803D+05/
+Data k0/   5/
+End
+Double Precision Function dzV_Ag_Graphene_Amorf(x)
+Parameter(Npg=20)
+Implicit Real*8(A-H,O-Z)
+Real*16 Pg,Sto,xq,Aux
+Integer*4 k0
+Common/Param_LJ_dzV_Ag_Graphene_Amorf/rcutoff,fcutoff,r0,aa,bb,cc,Pg(Npg),k0
+If(x.le.rcutoff)Then
+  dzV_Ag_Graphene_Amorf=fcutoff
+  Return
+Endif
+If(x.le.r0)Then
+  dzV_Ag_Graphene_Amorf=Abs(2.*aa*x+bb)
+  Return
+Endif
+Sto=0.0q0
+xq=1.0q0/x
+Aux=xq**(k0+2)
+Do k=1,Npg
+  Sto=Sto-pg(k)*Aux*(k0+k)
+  Aux=Aux*xq
+EndDo
+dzV_Ag_Graphene_Amorf=Sto
+Return
+End
+!....................
+!.. Funcion for Ca ..
+!....................
+double precision function V_ca(rr)
+
+!...ground state potential for Ca-He. Mauschick and Meyer 1989
+
+implicit none
+
+real (kind=8),    parameter :: bohr    = 0.529177249  ! 1Bohr = 0.529 \AA
+integer (kind=4), parameter :: mlr=5
+integer (kind=4), parameter :: mp =6
+real    (kind=8)            :: clr(mlr),p(mp)
+real    (kind=8)            :: r,rr
+integer (kind=4)            :: k,m
+
+data p/ 9.397738d-6,1.233746d0,0.06802583d0,    &
+        0.4441812d0,1.641748d0,4.73051d0/
+
+data clr/36.404,2.0834d+3,1.2405d+5,7.68460D+6,4.95275D+8/ 
+
+interface  
+function gam(l,x)
+   integer (kind=4) :: l
+   real    (kind=8) :: x
+   real    (kind=8) :: gam
+end function gam
+end interface
+r=rr/bohr
+V_ca = p(1)*(1+p(3)*r**p(4))*exp(-p(2)*(r-11)) ! Repulsion
+
+do k=1,mlr
+  m    = 4+2*k
+  V_ca = V_ca-clr(k)/r**m*gam(m,p(5)*(r-p(6))) ! Attraction
+end do
+V_ca = V_ca/3.1667d-6
+return
+
+end
+
+!...................
+!.. Function gam ...
+!...................
+
+double precision function gam(l,x)
+implicit none
+
+integer (kind=4) :: i,l
+real    (kind=8) :: x,xx
+
+
+gam = 0.0d0
+if(x.lt.0.d0) return
+gam = 1.0d0
+xx  = 1.0d0
+
+do i=1,l
+  xx  = xx*x/i
+  gam = gam+xx
+end do
+gam = 1.0d0-gam*exp(-x)
+
+return
+end 
+!
+!  Funcio que calcula el potencial Ar-Ar, entrada \AA, sortida K
+!
+!  r_cutoff = 2.0d0; umax = 8.0808095081d3
+!
+!
+Double precision function V_Ar_Ar(r)
+Implicit none
+real      (kind=8) :: AA     = 748.3d0
+real      (kind=8) :: BB     = 2.031d0
+real      (kind=8) :: C6     = 64.3d0
+real      (kind=8) :: C8     = 1623.d0
+real      (kind=8) :: C10    = 49060.d0 
+real      (kind=8) :: rbohr  = 0.5292d0
+real      (kind=8) :: Hartree_to_K  = 27.21d0*11604.d0
+real (kind=8) :: r, rr, Stoe, Stor, F6, F8, F10, Sto, Aux
+real (kind=8) :: c1or2, c1or6
+real (kind=8) :: r_cutoff=2.5d0, f_cutoff=1.224418d4
+real (kind=8) :: Fact(0:10)
+Logical  :: Lfirst = .true.
+Integer (Kind=4) :: i
+Save     :: Lfirst, Fact
+if(r.Le.r_cutoff)Then
+  V_Ar_Ar = f_cutoff
+  Return
+Endif        
+If(Lfirst)Then
+!  Write(6,'("#Control per veure si nomes hi pasem una vegada")')
+  Fact(0) = 1.d0; Fact(1) = 1.d0
+  Do i=2, 10
+    Fact(i) = Fact(i-1)*i
+  EndDo
+  Lfirst = .false.
+Endif
+rr = r/rbohr
+c1or2 = 1.d0/(rr*rr)
+c1or6 = c1or2*c1or2*c1or2
+Stor = bb*rr
+Stoe = Exp(-Stor)
+Sto  = 1.d0
+Aux = Stor 
+Do i=1, 6
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F6 = 1.d0 - Stoe*Sto
+Do i=7, 8
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F8 = 1.d0 - Stoe*Sto
+Do i=9, 10
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F10 = 1.d0 - Stoe*Sto
+Aux = AA*Stoe - (C6*F6 + (C8*F8 + C10*F10*c1or2)*c1or2)*c1or6
+V_Ar_Ar = Aux*Hartree_to_K
+Return
+End
+!
+!  Funcio que calcula el potencial Xe-Xe, entrada \AA, sortida K
+!
+!
+Double precision function V_Xe_Xe(r)
+Implicit none
+real      (kind=8) :: AA     = 951.8d0
+real      (kind=8) :: BB     = 1.681d0
+real      (kind=8) :: C6     = 285.9d0
+real      (kind=8) :: C8     = 12810.d0
+real      (kind=8) :: C10    = 619800.d0 
+real      (kind=8) :: rbohr  = 0.5292d0
+real      (kind=8) :: Hartree_to_K  = 27.21d0*11604.d0
+real (kind=8) :: r, rr, Stoe, Stor, F6, F8, F10, Sto, Aux
+real (kind=8) :: c1or2, c1or6
+real (kind=8) :: r_cutoff=2.5d0, f_cutoff=8.858633d4
+real (kind=8) :: Fact(0:10)
+Logical  :: Lfirst = .true.
+Integer (Kind=4) :: i
+Save     :: Lfirst, Fact
+If(r.Le.r_cutoff)Then
+  V_Xe_Xe = f_cutoff
+  Return
+EndIf  
+If(Lfirst)Then
+!  Write(6,'("#Control per veure si nomes hi pasem una vegada")')
+  Fact(0) = 1.d0; Fact(1) = 1.d0
+  Do i=2, 10
+    Fact(i) = Fact(i-1)*i
+  EndDo
+  Lfirst = .false.
+Endif
+rr = r/rbohr
+c1or2 = 1.d0/(rr*rr)
+c1or6 = c1or2*c1or2*c1or2
+Stor = bb*rr
+Stoe = Exp(-Stor)
+Sto  = 1.d0
+Aux = Stor 
+Do i=1, 6
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F6 = 1.d0 - Stoe*Sto
+Do i=7, 8
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F8 = 1.d0 - Stoe*Sto
+Do i=9, 10
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F10 = 1.d0 - Stoe*Sto
+Aux = AA*Stoe - (C6*F6 + (C8*F8 + C10*F10*c1or2)*c1or2)*c1or6
+V_Xe_Xe = Aux*Hartree_to_K
+Return
+End
+!
+!  Funcio que calcula la derivada del potencial Ar-Ar, entrada \AA, sortida K
+!
+!  r_cutoff = 2.0d0; umax = 8.0808095081d3
+!
+!
+Double precision function drV_Ar_Ar(r)
+Implicit none
+real      (kind=8) :: AA     = 748.3d0
+real      (kind=8) :: BB     = 2.031d0
+real      (kind=8) :: C6     = 64.3d0
+real      (kind=8) :: C8     = 1623.d0
+real      (kind=8) :: C10    = 49060.d0 
+real      (kind=8) :: rbohr  = 0.5292d0
+real      (kind=8) :: Hartree_to_K  = 27.21d0*11604.d0
+real (kind=8) :: r, rr, Stoe, Stor, F6, F8, F10, Sto, Aux
+real (kind=8) :: c1or, c1or2, c1or7, b2, b6, b8, b10
+real (kind=8) :: r_cutoff=2.5d0, f_cutoff=-5.266478d4
+real (kind=8) :: Fact(0:10)
+Logical  :: Lfirst = .true.
+Integer (Kind=4) :: i
+Save     :: Lfirst, Fact
+If(r.Le.r_cutoff)Then
+  drV_Ar_Ar = f_cutoff
+  Return
+EndIf  
+If(Lfirst)Then
+!  Write(6,'("#Control per veure si nomes hi pasem una vegada")')
+  Fact(0) = 1.d0; Fact(1) = 1.d0
+  Do i=2, 10
+    Fact(i) = Fact(i-1)*i
+  EndDo
+  Lfirst = .false.
+Endif
+b2=bb*bb
+b6=b2*b2*b2
+b8=b6*b2
+b10=b8*b2
+rr = r/rbohr
+c1or = 1.d0/rr
+c1or2 = c1or*c1or
+c1or7 = c1or2*c1or2*c1or2*c1or
+Stor = bb*rr
+Stoe = Exp(-Stor)
+Sto  = 1.d0
+Aux = Stor 
+Do i=1, 6
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F6 = 1.d0 - Stoe*Sto
+Do i=7, 8
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F8 = 1.d0 - Stoe*Sto
+Do i=9, 10
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F10 = 1.d0 - Stoe*Sto
+Aux = -bb*AA*Stoe + (6.d0*C6*F6 + (8.d0*C8*F8 + 10.d0*C10*F10*c1or2)*c1or2)*c1or7      &
+    -  bb*Stoe*(b6*C6/Fact(6) + b8*C8/Fact(8) + b10*C10/fact(10))
+drV_Ar_Ar = Aux*Hartree_to_K/rbohr
+Return
+End
+!
+!  Funcio que calcula la derivada del potencial Ar-Ar, entrada \AA, sortida K
+!
+!
+Double precision function drV_Xe_Xe(r)
+Implicit none
+real      (kind=8) :: AA     = 951.8d0
+real      (kind=8) :: BB     = 1.681d0
+real      (kind=8) :: C6     = 285.9d0
+real      (kind=8) :: C8     = 12810.d0
+real      (kind=8) :: C10    = 619800.d0 
+real      (kind=8) :: rbohr  = 0.5292d0
+real      (kind=8) :: Hartree_to_K  = 27.21d0*11604.d0
+real (kind=8) :: r, rr, Stoe, Stor, F6, F8, F10, Sto, Aux
+real (kind=8) :: c1or, c1or2, c1or7, b2, b6, b8, b10
+real (kind=8) :: r_cutoff=2.5d0, f_cutoff=-3.017394d5
+real (kind=8) :: Fact(0:10)
+Logical  :: Lfirst = .true.
+Integer (Kind=4) :: i
+Save     :: Lfirst, Fact
+If(r.Le.r_cutoff)Then
+  drV_Xe_Xe = f_cutoff
+  Return
+EndIf  
+If(Lfirst)Then
+!  Write(6,'("#Control per veure si nomes hi pasem una vegada")')
+  Fact(0) = 1.d0; Fact(1) = 1.d0
+  Do i=2, 10
+    Fact(i) = Fact(i-1)*i
+  EndDo
+  Lfirst = .false.
+Endif
+b2=bb*bb
+b6=b2*b2*b2
+b8=b6*b2
+b10=b8*b2
+rr = r/rbohr
+c1or = 1.d0/rr
+c1or2 = c1or*c1or
+c1or7 = c1or2*c1or2*c1or2*c1or
+Stor = bb*rr
+Stoe = Exp(-Stor)
+Sto  = 1.d0
+Aux = Stor 
+Do i=1, 6
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F6 = 1.d0 - Stoe*Sto
+Do i=7, 8
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F8 = 1.d0 - Stoe*Sto
+Do i=9, 10
+  Sto = Sto + Aux/Fact(i)
+  Aux = Aux*Stor
+Enddo
+F10 = 1.d0 - Stoe*Sto
+Aux = -bb*AA*Stoe + (6.d0*C6*F6 + (8.d0*C8*F8 + 10.d0*C10*F10*c1or2)*c1or2)*c1or7      &
+    -  bb*Stoe*(b6*C6/Fact(6) + b8*C8/Fact(8) + b10*C10/fact(10))
+drV_Xe_Xe = Aux*Hartree_to_K/rbohr
 Return
 End
