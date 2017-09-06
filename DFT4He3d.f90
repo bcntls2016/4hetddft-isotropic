@@ -98,7 +98,7 @@ real       (kind=8)  :: xcm4,ycm4,zcm4,xcmx,ycmx,zcmx ! Center of mass Drop and 
 real       (kind=8)  :: xcm,ycm,zcm ! Center of mass Drop 
 real       (kind=8)  :: xlx,xly,xlz ! Angular momentum 
 real       (kind=8)  :: distx,disty,distz  ! Distance between center of masses
-real       (kind=8)  :: errHe, errimp,erriv     ! Error evolution (only form Predictor-Corrector-Modificator)
+real       (kind=8)  :: errHe, errimp,errvimp     ! Error evolution (only form Predictor-Corrector-Modificator)
 real       (kind=8)  :: Zsurf = -25.d0, Morse_HeTiO2_1D, Morse_HeTiO2_3D, auxn4 ! Position of the surface
 
 integer    (kind=4)  :: n4=300         ! Number of helium_4 atoms
@@ -642,9 +642,9 @@ pr%it = iter
       call steprk(deltat)
 
     else
-      call steppc(deltat,errHe,errimp)
+      call steppc(deltat,errHe,errimp,errvimp)
 
-      write(6,'(" Error( He, imp) (From Steppc)...",1p,2E15.6)')errHe,errimp
+      write(6,'(" Error( He, imp) (From Steppc)...",1p,3E15.6)')errHe,errimp,errvimp
     endif
 
     call potenimp()
