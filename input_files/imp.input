@@ -1,0 +1,11 @@
+&imp
+  m_imp_u(1) = 131.29d0 
+  rimp(1,*) = /0.d0,0.d0,-24.0d0/
+  vimp(1,*) = /0.d0,0.d0,0.0d0/
+  selec_gs_k(1) ="Xe_He"
+  r_cutoff_ga_k(1) = 2.55d0
+  umax_gs_k(k) = 2.7939365463E+03
+  filerimp_k(1) = 'rimp.out.0'
+  filevimp_k(1) = 'vimp.out.0'
+  fileaimp_k(1) = 'aimp.out.0'
+/
