@@ -188,6 +188,8 @@ write(10,nml=input)
 
 Allocate(pr%psi(nx,ny,nz))
 Allocate(pr%selec_gs_k(N_imp))
+Allocate(pr%rimp(N_imp:3))
+Allocate(pr%vimp(N_imp:3))
 Allocate(pr%selec_gs_k_k(N_imp,N_imp))
 Allocate(pr%drselec_gs_k_k(N_imp,N_imp))
 Allocate(pr%r_cutoff_gs_k(N_imp))
@@ -285,7 +287,11 @@ do k=1,N_imp
     pr%selec_gs_k_k(k,m)=selec_gs_k_k(k,m)
 	pr%r_cutoff_gs_k_k(k,m)=r_cutoff_gs_k_k(k,m)
 	pr%umax_gs_k_k(k,m)=umax_gs_k_k(k,m)
+    pr%drselec_gs_k_k(k,m)=drselec_gs_k_k(k,m)
+	pr%drr_cutoff_gs_k_k(k,m)=drr_cutoff_gs_k_k(k,m)
+	pr%drumax_gs_k_k(k,m)=drumax_gs_k_k(k,m)
     Write(6,'(A/,"selec_gs_k_k,r_cutoff_gs_k_k,umax_gs_k_k..:"1p,2E15.6)')selec_gs_k_k(k,m),r_cutoff_gs_k_k(k,m),umax_gs_k_k(k,m)
+    Write(6,'(A/,"drselec_gs_k_k,drr_cutoff_gs_k_k,drumax_gs_k_k..:"1p,2E15.6)')drselec_gs_k_k(k,m),drr_cutoff_gs_k_k(k,m),drumax_gs_k_k(k,m)
   enddo
 enddo
 !.....................................
@@ -760,8 +766,8 @@ pr%it = iter
         pr%evx     = eimpu
         pr%etot    = etot
         pr%time    = temps
-		pr%rimp(:,:) = rimp(:,:)
-		pr%vimp(:,:) = vimp(:,:)
+		pr%rimp(:,:)  = rimp(:,:)
+		pr%vimp(:,:)    = vimp(:,:)
         write(6,7100) xcm4,ycm4,zcm4
 
    end if
