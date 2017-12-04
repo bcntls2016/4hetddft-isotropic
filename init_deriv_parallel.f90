@@ -54,10 +54,8 @@ Implicit Real*8(A-H,O-Z)
 Integer (Kind=4), Intent(in)    :: k,kmax
 Integer (Kind=4), Intent(in)    :: Number_of_Threads
 Integer (Kind=4), Save   :: Icon_save=-1
-Logical (Kind=4)   :: OMP_Dynamic_Enable=.false.
+Logical (Kind=4)   :: OMP_Dynamic_Enable=.true.
 Real (Kind=8), Allocatable      :: f(:), Caux(:)
-Real (Kind=8) ::tmp_sum
-
 If(k.Lt.kmax)Then
   Write(0,'(" From Init_deriv_p: k no pot ser mes petit que kmax",2i5)')k,kmax
   Stop '001'
@@ -113,8 +111,9 @@ If(n.Lt.npd)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon
 
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
@@ -213,8 +212,9 @@ If(nn(iv).Lt.npd)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon        
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon        
 
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
@@ -379,7 +379,6 @@ Real    (Kind=8), Intent(in)  :: h        ! Interval en la definicio de la funci
 Real    (Kind=8), Intent(in)  ::  f(nn(1),nn(2),nn(3)) ! Funcio (entrada)
 Real    (Kind=8), Intent(out) :: df(nn(1),nn(2),nn(3)) ! Derivada (sortida)
 Real    (Kind=8), Allocatable :: Cd(:,:),Caux(:)
-integer ik
 
 K=npd; Kk=K*K; Kkp1=KK+1
 KO2=K/2; KO2P1=KO2+1; K1=K-1; Ko2p2=ko2+2
@@ -397,8 +396,9 @@ If(nn(iv).Lt.npd)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
     Caux(j+(i-1)*npd)=Cdc(id,i,j)
@@ -510,13 +510,6 @@ If(Icon.Ne.8.And.Icon.Ne.18)Then
     Do i=ko2p1,NmKo2
       Do i2=1, n2
         Do i1=1, n1
-	  tmp_sum=0.d0
-	  !DIR$ VECTOR ALWAYS
-	  !DIR$ DISTRIBUTE POINT 
-!         do ik=0,2*ko2
-!                tmp_sum=tmp_sum+Cd(ko2p1,ik+1)*f(i1,i2,i-ko2+ik)
-!         enddo   
-!         df(i1,i2,i)=tmp_sum
           df(i1,i2,i)=Sum(Cd(ko2p1,:)*f(i1,i2,i-ko2:i+ko2))
         EndDo
       EndDo
@@ -678,8 +671,9 @@ If(n.Lt.npd)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon
 
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
@@ -778,8 +772,9 @@ If(nn(iv).Lt.npd)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon
 
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
@@ -961,8 +956,9 @@ If(nn(iv).Lt.npd)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon
 
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
@@ -1236,8 +1232,9 @@ If(n.Lt.npd)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon
 
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
@@ -1335,8 +1332,9 @@ If(nn(iv).Lt.npd)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
     Caux(j+(i-1)*npd)=Cdc(id,i,j)
@@ -1440,8 +1438,9 @@ If(nn(iv).Lt.npd)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
     Caux(j+(i-1)*npd)=Cdc(id,i,j)
@@ -1560,8 +1559,9 @@ If(id.Gt.ndmax)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon
 
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
@@ -1643,8 +1643,9 @@ If(nn(iv).Lt.npd)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
     Caux(j+(i-1)*npd)=Cdc(id,i,j)
@@ -1748,8 +1749,9 @@ If(nn(iv).Lt.npd)Then
   return
 Endif
 
-If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
-  Icon_save=Icon
+If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18)Then
+!If(Icon.Ne.0.And.Icon.Ne.8.And.Icon.Ne.18.And.Icon_save.Ne.Icon)Then
+!  Icon_save=Icon
   Allocate(Caux(kkp1))
   ForAll(i=1:k,j=1:k)
     Caux(j+(i-1)*npd)=Cdc(id,i,j)
