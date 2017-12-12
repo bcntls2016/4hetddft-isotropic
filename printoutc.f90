@@ -10,22 +10,16 @@
 !  in binary format.
 
 
-!subroutine printoutc(time,iprint,namefile,namefile1,             &
-!                    psi,nx,ny,nz,hx,hy,hz,       &
-!                    xmax,ymax,zmax,rimp,vimp,psix,    &
-!                    paflv,iter)
 subroutine printoutc(pr)
-!subroutine printoutc(namefile,nx,ny,nz,psi,rimp,vimp,pr)
 
 Use Impressio
-
 implicit none
 
 integer (kind=4) :: k,m,N_imp
 
 Type(info_printout) pr
   N_imp=pr%N_imp
-  open(10,file=pr%namefile,form='FORMATTED',BUFFERED='yes')
+  open(10,file=outdir//'/'//pr%namefile,form='FORMATTED',BUFFERED='yes')
     write(10,'("#  ")')
     write(10,'("#  Density after ",I15," iterations")') pr%it
     write(10,'("#  Actual deltatps....:",1p,E20.10)') pr%dtps

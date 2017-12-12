@@ -1,5 +1,5 @@
 Module Impressio
-
+Character (len=60) :: outdir = 'he-wfs'
 Type, Public  :: info_printout
   Character (len=60) :: namefile
   Character (Len=80), Allocatable :: selec_gs_k(:), selec_gs_k_k(:,:), drselec_gs_k_k(:,:)

@@ -41,18 +41,17 @@ use lenard4
 use he4
 use util1
 use work1
+use ifport
 
 implicit none
 
 Type (info_printout) pr
-
-
 real (kind=4) :: t0,t1,t2,t3,t4,t5,t6   ! Variables used to printout run time execution.
-
 logical              :: lfilepv         ! T-> print save file when change Paflo parameter.
 logical              :: lpaflv=.false.  ! T-> allows change of Paflov coeffient
 logical              :: lrkpc=.true.    ! T-> allows to use diferent evolution procedures
 logical              :: lrk=.false.     ! T-> allows to only Runge-Kutta method
+logical				 :: result			! Logical variable to store result of ifport.makedirqq(outdir)
 integer    (kind=4)  :: ndmax=2         ! maxima derivada a calcular
 integer    (kind=4)  :: naux            ! Auxiliar variable
 integer    (kind=4)  :: nstepp=1        ! Number of 'Paflov parameter'.
@@ -119,7 +118,7 @@ character  (len=60)  :: filerimp      = 'rimp.out'
 character  (len=60)  :: filevimp      = 'vimp.out'
 character  (len=60)  :: fileaimp      = 'aimp.out'
 character  (len=60)  :: filequadrupol = 'quadrupol.out'
-character  (len=60)  :: namefile,namefile1
+character  (len=60)  :: namefile
 
 character  (len=23)  :: curvfile
 character  (len=4)   :: chariter
@@ -142,7 +141,7 @@ real(kind=4)                 :: temps_ela, t_cpu, t_cpu_0, t_cpu_1
 
 !....................Variables read in a NAMELIST statement ..............................
 
-namelist /input/title,fftwplan,nthread,nsfiles,                         &
+namelist /input/title,fftwplan,nthread,nsfiles,outdir,                  &
                 fileout,filemonopol, filerimp,filevimp,fileaimp,        &
                 filedenin,filedenout,                                   &
                 fileimpin,fileimpout,                                   &
@@ -167,6 +166,12 @@ namelist /imp/rimp,vimp,m_imp_u,selec_gs_k,r_cutoff_gs_k,umax_gs_k,		&
 
 !................................ Start main Program ..............................
 call timer(t0)
+
+!.............................................................
+!... Create output directory for the helium wave functions ...
+!.............................................................
+result=MAKEDIRQQ(outdir)
+
 !.............................................
 !... Inicializate some numerical constants ...
 !.............................................
@@ -793,7 +798,7 @@ pr%it = iter
       namefile='density.'//chariter//'.dat'
       pr%namefile = namefile
       pr%psi(:,:,:) = psi(:,:,:)
-       call printoutc(pr)
+      call printoutc(pr)
    endif
 
 !..............................................................................
@@ -816,7 +821,7 @@ print*, "elapsed partie iterative : ", temps_ela
 print*, "cpu_time partie iterative : ", t_cpu
       pr%namefile = filedenout
       pr%psi(:,:,:) = psi(:,:,:)
-       call printoutc(pr)
+      call printoutc(pr)
 call timer(t4)
 print *,' Total  ',t4-t0
 
