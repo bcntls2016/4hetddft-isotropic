@@ -19,7 +19,7 @@ integer (kind=4) :: k,m,N_imp
 
 Type(info_printout) pr
   N_imp=pr%N_imp
-  open(10,file=outdir//'/'//pr%namefile,form='FORMATTED',BUFFERED='yes')
+  open(10,file=trim(outdir)//"/"//pr%namefile,form='FORMATTED',BUFFERED='yes')
     write(10,'("#  ")')
     write(10,'("#  Density after ",I15," iterations")') pr%it
     write(10,'("#  Actual deltatps....:",1p,E20.10)') pr%dtps
